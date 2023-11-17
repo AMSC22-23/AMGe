@@ -1,2 +1,2 @@
 all:
-	gcc -o test ciao.c
+	g++ -o test main.cpp

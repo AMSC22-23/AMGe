@@ -1,14 +1,10 @@
 #include <iostream>
 #include <cmath>
-
-#define N 10
-#define N_INTERNAL (N-2)
-
-
 #include "ComputeFunctionNode.hpp"
 
 
-
+#define N 10
+#define N_INTERNAL (N-2)
 
 
 void print_matrix(double A[N_INTERNAL*N_INTERNAL][N_INTERNAL*N_INTERNAL]){
@@ -62,12 +58,13 @@ double f(double x,double y){  //main function
 
 int main (int argc, char *argv[]) {
 	double A[(N-2)*(N-2)][(N-2)*(N-2)] = {0.0};
-	double b[(N-2)*(N-2)]      = {0.0};
-
+	double b[(N-2)*(N-2)]              = {0.0};
 	double h = 1.0 / static_cast<double>(N-1);
-	Mesh a;
-	ComputeFunctionNode bordo(a,g);
-	ComputeFunctionNode funzione(a,f);
+
+
+	Mesh mesh(0.0, 0.0, 1.0, 1.0, N);
+	ComputeFunctionNode bordo(&mesh,g);
+	ComputeFunctionNode funzione(&mesh,f);
 
 	int row = 0;
 

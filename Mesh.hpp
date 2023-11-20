@@ -21,6 +21,16 @@ public:
     }
 
 
+    unsigned int getDimension () {
+	return N;
+    }
+
+
+    double getDiscretizationStep() {
+	return width / static_cast<double>(N);
+    }
+
+
     ~Mesh() override = default;
 
 

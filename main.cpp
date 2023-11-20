@@ -1,9 +1,10 @@
 #include <iostream>
 #include <cmath>
+#include <vector>
 #include "ComputeFunctionNode.hpp"
 
 
-#define N 10
+#define N 50
 #define N_INTERNAL (N-2)
 
 
@@ -24,9 +25,9 @@ void print_vector(double b[N_INTERNAL*N_INTERNAL]) {
 }
 
 
-/*int index(int i, int j) {
-	return i * (N_INTERNAL) + j;
-}*/
+int index(int i, int j) {
+	return i * N + j;
+}
 
 
 int local_index(int i, int j) {			//index matrix in a vector
@@ -51,61 +52,61 @@ double f(double x,double y){  //main function
 
 /*double f(int i, int j) {
 	return 0.0;
+
 }*/
+
+
+void setup_solution(Mesh &M, std::vector<double> &U, ComputeFunctionNode &b) {
+	for (int i = 0; i < M.getDimension(); ++i) {
+		for (int j = 0; j < M.getDimension(); ++j) {
+			U[i * M.getDimension() + j] = b.getValue(i, j);
+		}
+	}
+}
 
 
 
 
 int main (int argc, char *argv[]) {
-	double A[(N-2)*(N-2)][(N-2)*(N-2)] = {0.0};
-	double b[(N-2)*(N-2)]              = {0.0};
-	double h = 1.0 / static_cast<double>(N-1);
-
-
-	Mesh mesh(0.0, 0.0, 1.0, 1.0, N);
+	Mesh mesh(-1.0, 0.0, 2.0, 2.0, N);
 	ComputeFunctionNode bordo(&mesh,g);
 	ComputeFunctionNode funzione(&mesh,f);
 
-	int row = 0;
 
-	for (int i = 1; i < N-1; ++i) {
-		for (int j = 1; j < N-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
-			A[row][local_index(i,  j)] = -4.0;
-			b[row]=funzione.getValue(i,j);
+	std::vector<double> U_old(N*N);
+	std::vector<double> U(N*N);
 
-			if (i != 1) {
-				A[row][local_index(i-1,j)] =  1.0;
-			}
-			else {
-				b[row] -= bordo.getValue(i-1,j);
-			}
+	setup_solution(mesh, U_old, bordo);
+	setup_solution(mesh, U    , bordo);
 
-			if (i != N-2) {
-				A[row][local_index(i+1,j)] =  1.0;
-			}
-			else {
-				b[row] -= bordo.getValue(i+1,j);
-			}
 
-			if (j != 1) {
-				A[row][local_index(i,j-1)] =  1.0;
-			}
-			else {
-				b[row] -= bordo.getValue(i,j-1);
-			}
 
-			if (j != N-2) {
-				A[row][local_index(i,j+1)] =  1.0;
-			}
-			else {
-				b[row] -= bordo.getValue(i,j+1);
-			}
+	for (int k = 0; k < 1000; ++k) {
+		// Jacobi iteration
+		double h = mesh.getDiscretizationStep();
+		for (int i = 1; i < N-1; ++i) {
+			for (int j = 1; j < N-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
+				double b = funzione.getValue(i, j) * h * h;
 
-			++row;
+				U[index(i,j)] =
+					( b
+					- U_old[index(i+1,j)]
+					- U_old[index(i-1,j)]
+					- U_old[index(i,j+1)]
+					- U_old[index(i,j-1)] ) / (-4.0);
+			}
 		}
+
+
+		std::swap(U, U_old);
 	}
 
-	print_matrix(A);    
+	for (auto x : U) {
+		std::cout << x << std::endl;
+	}
+
+
+	//print_matrix(A);
 	//print_vector(b);
 
 	return 0;

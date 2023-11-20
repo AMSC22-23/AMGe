@@ -2,6 +2,8 @@
 #include <cmath>
 #include <vector>
 #include "ComputeFunctionNode.hpp"
+#include "Utils.hpp"
+
 
 using namespace std;
 
@@ -75,23 +77,20 @@ void jacobi_iteration(double h_square, vector<double> &U_old, vector<double> &U,
 }
 
 
-double compute_norm(vector<double> &residual){   //euclidean norm
-	double result=0;
-	for(auto v : residual){
-		result+=pow(v,2);
-	}
-	return sqrt(result);
-}
-
-
 double compute_residual(double h_square, vector<double> &U, vector<double> &residual, ComputeFunctionNode &function){  
 	for (int i = 1; i < Ny-1; ++i) {
-			for (int j = 1; j < Nx-1; ++j) { 
-					residual[index(i,j)]=h_square*function.getValue(i,j)+U[index(i,j-1)]+U[index(i-1,j)]-4*U[index(i,j)]+U[index(i+1,j)]+U[index(i,j+1)];
-			}
+		for (int j = 1; j < Nx-1; ++j) { 
+			residual[index(i,j)] =
+				 h_square*function.getValue(i,j)
+				+U[index(i,j-1)]
+				+U[index(i-1,j)]
+				+U[index(i+1,j)]
+				+U[index(i,j+1)]
+				-4*U[index(i,j)];
+		}
 	}
-	return compute_norm(residual);
 
+	return norm(residual);
 }
 
 

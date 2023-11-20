@@ -10,7 +10,7 @@ public:
 	width  = _width;
 	height = _height;
 	Nx     = _Nx;
-    Ny     = _Ny;
+	Ny     = _Ny;
     };
 
 
@@ -22,11 +22,11 @@ public:
     }
 
 
-    unsigned int getDimensionX () {
+    unsigned int getDimensionX() {
 	return Nx;
     }
 
-    unsigned int getDimensionY () {
+    unsigned int getDimensionY() {
 	return Ny;
     }
 

@@ -26,8 +26,28 @@ public:
     }
 
 
-    double getDiscretizationStep() {
+    double getDiscretizationStepX() {
 	return width / static_cast<double>(N);
+    }
+
+    double getDiscretizationStepY() {
+	return height / static_cast<double>(N);
+    }
+
+    double getWidth(){
+        return width;
+    }
+    
+    double getHeight(){
+        return height;
+    }
+
+    double getXCenter(){
+        return x;
+    }
+
+    double getYCenter(){
+        return y;
     }
 
 

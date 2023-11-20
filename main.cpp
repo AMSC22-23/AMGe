@@ -3,12 +3,13 @@
 #include <vector>
 #include "ComputeFunctionNode.hpp"
 
+using namespace std;
 
 #define N 50
 #define N_INTERNAL (N-2)
 
 
-void print_matrix(double A[N_INTERNAL*N_INTERNAL][N_INTERNAL*N_INTERNAL]){
+/*void print_matrix(double A[N_INTERNAL*N_INTERNAL][N_INTERNAL*N_INTERNAL]){
 	for(int i = 0; i < N_INTERNAL*N_INTERNAL; ++i){
 		for(int j = 0; j < N_INTERNAL*N_INTERNAL; ++j){
 			std::cout << A[i][j] << " ";
@@ -22,7 +23,7 @@ void print_vector(double b[N_INTERNAL*N_INTERNAL]) {
 		for(int i = 0; i < N_INTERNAL*N_INTERNAL; ++i){
 			std::cout << b[i] << std::endl;
 		}
-}
+}*/
 
 
 int index(int i, int j) {
@@ -30,14 +31,10 @@ int index(int i, int j) {
 }
 
 
-int local_index(int i, int j) {			//index matrix in a vector
+/*int local_index(int i, int j) {			//index matrix in a vector
 	return (i-1) * N_INTERNAL + j - 1;
-}
-
-
-/*double bordo(int i, int j) {
-	return 1.0;
 }*/
+
 
 
 double g(double x,double y){  //function buondary conditions
@@ -50,13 +47,7 @@ double f(double x,double y){  //main function
 }
 
 
-/*double f(int i, int j) {
-	return 0.0;
-
-}*/
-
-
-void setup_solution(Mesh &M, std::vector<double> &U, ComputeFunctionNode &b) {
+void setup_solution(Mesh &M, vector<double> &U, ComputeFunctionNode &b) {  //initialize function U to border value
 	for (int i = 0; i < M.getDimension(); ++i) {
 		for (int j = 0; j < M.getDimension(); ++j) {
 			U[i * M.getDimension() + j] = b.getValue(i, j);
@@ -64,29 +55,13 @@ void setup_solution(Mesh &M, std::vector<double> &U, ComputeFunctionNode &b) {
 	}
 }
 
+void jacobi_iteration(double h_square, vector<double> &U_old, vector<double> &U, ComputeFunctionNode &function,Mesh m){  //1 cycle of Jacobi
+	double b;
 
-
-
-int main (int argc, char *argv[]) {
-	Mesh mesh(-1.0, 0.0, 2.0, 2.0, N);
-	ComputeFunctionNode bordo(&mesh,g);
-	ComputeFunctionNode funzione(&mesh,f);
-
-
-	std::vector<double> U_old(N*N);
-	std::vector<double> U(N*N);
-
-	setup_solution(mesh, U_old, bordo);
-	setup_solution(mesh, U    , bordo);
-
-
-
-	for (int k = 0; k < 1000; ++k) {
-		// Jacobi iteration
-		double h = mesh.getDiscretizationStep();
-		for (int i = 1; i < N-1; ++i) {
-			for (int j = 1; j < N-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
-				double b = funzione.getValue(i, j) * h * h;
+	for (int i = 1; i < m.getDimension()-1; ++i) {
+			for (int j = 1; j < m.getDimension()-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
+				
+				b = function.getValue(i, j) * h_square;
 
 				U[index(i,j)] =
 					( b
@@ -96,18 +71,63 @@ int main (int argc, char *argv[]) {
 					- U_old[index(i,j-1)] ) / (-4.0);
 			}
 		}
+}
 
 
-		std::swap(U, U_old);
+double compute_norm(vector<double> &residual){   //euclidean norm
+	double result=0;
+	for(auto v : residual){
+		result+=pow(v,2);
+	}
+	return sqrt(result);
+}
+
+
+double compute_residual(double h_square, vector<double> &U, vector<double> &residual, ComputeFunctionNode &function){  
+	for (int i = 1; i < N-1; ++i) {
+			for (int j = 1; j < N-1; ++j) { 
+					residual[index(i,j)]=h_square*function.getValue(i,j)+U[index(i,j-1)]+U[index(i-1,j)]-4*U[index(i,j)]+U[index(i+1,j)]+U[index(i,j+1)];
+			}
+	}
+	return compute_norm(residual);
+
+}
+
+
+int main (int argc, char *argv[]) {
+	Mesh mesh(-1.0, 0.0, 2.0, 2.0, N);
+	ComputeFunctionNode bordo(&mesh,g);
+	ComputeFunctionNode funzione(&mesh,f);
+
+
+	vector<double> U_old(mesh.getDimension()*mesh.getDimension());
+	vector<double> U(mesh.getDimension()*mesh.getDimension());
+	
+	vector<double> residual(mesh.getDimension()*mesh.getDimension());
+	double residual_norm=100;
+
+	int count =0;
+
+	setup_solution(mesh, U_old, bordo);
+	setup_solution(mesh, U    , bordo);
+
+	double h_2dimension = mesh.getDiscretizationStepX()*mesh.getDiscretizationStepY();
+
+
+	while(residual_norm>1){
+		// Jacobi iteration
+		jacobi_iteration(h_2dimension,U_old,U,funzione,mesh);
+		residual_norm=compute_residual(h_2dimension,U,residual,funzione);
+		swap(U, U_old);
+		//cout<<residual_norm<<endl;
 	}
 
-	for (auto x : U) {
-		std::cout << x << std::endl;
-	}
+	/*for (auto x : U) {
+		cout << x << endl;
+	}*/
 
+	cout<<residual_norm<<endl;
 
-	//print_matrix(A);
-	//print_vector(b);
 
 	return 0;
 }

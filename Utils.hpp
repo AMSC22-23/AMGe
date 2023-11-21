@@ -13,4 +13,21 @@ double norm(std::vector<double> &v){
 }
 
 
+void export_to_matlab(const char *name, std::vector<double> &v, std::ostream &out = std::cout){
+	out
+		<< "# name: "      << name     << std::endl
+		<< "# type: matrix"            << std::endl
+		<< "# rows: 1"                 << std::endl
+		<< "# columns: "   << v.size() << std::endl;
+
+
+	for (auto x : v) {
+		out << x << ' ';
+	}
+
+
+	out << '\n' << '\n';
+}
+
+
 #endif

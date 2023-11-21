@@ -46,7 +46,7 @@ double g(double x,double y){  //function buondary conditions
 
 
 double f(double x,double y){  //main function
-	return 0.0;
+	return 1.0;
 }
 
 
@@ -58,35 +58,37 @@ void setup_solution(Mesh &M, vector<double> &U, ComputeFunctionNode &b) {  //ini
 	}
 }
 
-void jacobi_iteration(double h_square, vector<double> &U_old, vector<double> &U, ComputeFunctionNode &function,Mesh m){  //1 cycle of Jacobi
+void jacobi_iteration(vector<double> &U_old, vector<double> &U, ComputeFunctionNode &function){  //1 cycle of Jacobi
 	double b;
+	double hx_square= function.getMesh()->getDiscretizationStepX()*function.getMesh()->getDiscretizationStepX();
+	double hy_square= function.getMesh()->getDiscretizationStepY()*function.getMesh()->getDiscretizationStepY();
+	double den      = ((2.0)*((1/hx_square)+(1/hy_square))); 
+	
 
-	for (int i = 1; i < m.getDimensionY()-1; ++i) {
-			for (int j = 1; j < m.getDimensionX()-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
-				
-				b = function.getValue(i, j) * h_square;
-
+	for (int i = 1; i < function.getMesh()->getDimensionY()-1; ++i) {
+			for (int j = 1; j < function.getMesh()->getDimensionX()-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
+				b = function.getValue(i, j);
 				U[index(i,j)] =
 					( b
-					- U_old[index(i+1,j)]
-					- U_old[index(i-1,j)]
-					- U_old[index(i,j+1)]
-					- U_old[index(i,j-1)] ) / (-4.0);
+					+ ((U_old[index(i+1,j)]+U_old[index(i-1,j)])/hx_square)
+					+ ((U_old[index(i,j+1)]+U_old[index(i,j-1)])/hy_square) ) / den;		
 			}
-		}
+	}
 }
 
 
-double compute_residual(double h_square, vector<double> &U, vector<double> &residual, ComputeFunctionNode &function){  
-	for (int i = 1; i < Ny-1; ++i) {
-		for (int j = 1; j < Nx-1; ++j) { 
+double compute_residual(vector<double> &U, vector<double> &residual, ComputeFunctionNode &function){    //compute residual vecotr
+	double h_squarex= function.getMesh()->getDiscretizationStepX()*function.getMesh()->getDiscretizationStepX();
+	double h_squarey= function.getMesh()->getDiscretizationStepY()*function.getMesh()->getDiscretizationStepY();
+	double factor =-2.0*(h_squarex+h_squarey);
+	
+	for (int i = 1; i < function.getMesh()->getDimensionY()-1; ++i) {
+		for (int j = 1; j < function.getMesh()->getDimensionX()-1; ++j) { 
 			residual[index(i,j)] =
-				 h_square*function.getValue(i,j)
-				+U[index(i,j-1)]
-				+U[index(i-1,j)]
-				+U[index(i+1,j)]
-				+U[index(i,j+1)]
-				-4*U[index(i,j)];
+				 (h_squarex*h_squarey*function.getValue(i,j))
+				+((U[index(i,j-1)]+U[index(i,j+1)])*h_squarex)
+				+((U[index(i-1,j)]+U[index(i+1,j)])*h_squarey)
+				+factor*U[index(i,j)];
 		}
 	}
 
@@ -111,15 +113,14 @@ int main (int argc, char *argv[]) {
 	setup_solution(mesh, U_old, bordo);
 	setup_solution(mesh, U    , bordo);
 
-	double h_2dimension = mesh.getDiscretizationStepX()*mesh.getDiscretizationStepY();
 
 
-	while(residual_norm>1){
+	while(residual_norm>1.e-8){
 		// Jacobi iteration
-		jacobi_iteration(h_2dimension,U_old,U,funzione,mesh);
-		residual_norm=compute_residual(h_2dimension,U,residual,funzione);
+		jacobi_iteration(U_old,U,funzione);
+		residual_norm=compute_residual(U,residual,funzione);
 		swap(U, U_old);
-		//cout<<residual_norm<<endl;
+		cout<<residual_norm<<endl;
 	}
 
 	/*for (auto x : U) {

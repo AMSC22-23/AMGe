@@ -16,6 +16,11 @@ public:
     }
 
 
+    Mesh* getMesh(){
+        return M;
+    }
+
+
     virtual ~ComputeFunctionNode() override = default;
 
 

@@ -9,24 +9,6 @@ using namespace std;
 
 #define Nx 50
 #define Ny 50
-#define N_INTERNAL (N-2)
-
-
-/*void print_matrix(double A[N_INTERNAL*N_INTERNAL][N_INTERNAL*N_INTERNAL]){
-	for(int i = 0; i < N_INTERNAL*N_INTERNAL; ++i){
-		for(int j = 0; j < N_INTERNAL*N_INTERNAL; ++j){
-			std::cout << A[i][j] << " ";
-		}
-		std::cout << std::endl;
-	}
-}
-
-
-void print_vector(double b[N_INTERNAL*N_INTERNAL]) {
-		for(int i = 0; i < N_INTERNAL*N_INTERNAL; ++i){
-			std::cout << b[i] << std::endl;
-		}
-}*/
 
 
 int index(int i, int j) {
@@ -34,19 +16,13 @@ int index(int i, int j) {
 }
 
 
-/*int local_index(int i, int j) {			//index matrix in a vector
-	return (i-1) * N_INTERNAL + j - 1;
-}*/
-
-
-
-double g(double x,double y){  //function buondary conditions
+double g(double x,double y){  //function boundary conditions
 	return 1.0;
 }
 
 
 double f(double x,double y){  //main function
-	return 1.0;
+	return 0.0;
 }
 
 
@@ -98,6 +74,7 @@ double compute_residual(vector<double> &U, vector<double> &residual, ComputeFunc
 
 int main (int argc, char *argv[]) {
 	Mesh mesh(-1.0, 0.0, 2.0, 2.0, Nx,Ny);
+
 	ComputeFunctionNode bordo(&mesh,g);
 	ComputeFunctionNode funzione(&mesh,f);
 
@@ -115,7 +92,7 @@ int main (int argc, char *argv[]) {
 
 
 
-	while(residual_norm>1.e-8){
+	while (residual_norm > 1e-6) {
 		// Jacobi iteration
 		jacobi_iteration(U_old,U,funzione);
 		residual_norm=compute_residual(U,residual,funzione);
@@ -123,11 +100,8 @@ int main (int argc, char *argv[]) {
 		cout<<residual_norm<<endl;
 	}
 
-	/*for (auto x : U) {
-		cout << x << endl;
-	}*/
 
-	cout<<residual_norm<<endl;
+	export_to_matlab("U", U);
 
 
 	return 0;

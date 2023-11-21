@@ -22,14 +22,14 @@ double g(double x,double y){  //function boundary conditions
 
 
 double f(double x,double y){  //main function
-	return 0.0;
+	return 1.0;
 }
 
 
-void setup_solution(Mesh &M, vector<double> &U, ComputeFunctionNode &b) {  //initialize function U to border value
-	for (int i = 0; i < M.getDimensionY(); ++i) {
-		for (int j = 0; j < M.getDimensionX(); ++j) {
-			U[i * M.getDimensionY() + j] = b.getValue(i, j);
+void setup_solution(vector<double> &U, ComputeFunctionNode &b) {  //initialize function U to border value
+	for (int i = 0; i < b.getMesh()->getDimensionY(); ++i) {
+		for (int j = 0; j < b.getMesh()->getDimensionX(); ++j) {
+			U[i * b.getMesh()->getDimensionY() + j] = b.getValue(i, j);
 		}
 	}
 }
@@ -87,8 +87,8 @@ int main (int argc, char *argv[]) {
 
 	int count =0;
 
-	setup_solution(mesh, U_old, bordo);
-	setup_solution(mesh, U    , bordo);
+	setup_solution( U_old, bordo);
+	setup_solution( U, bordo);
 
 
 
@@ -101,7 +101,7 @@ int main (int argc, char *argv[]) {
 	}
 
 
-	export_to_matlab("U", U);
+	//export_to_matlab("U", U);
 
 
 	return 0;

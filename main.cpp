@@ -9,24 +9,6 @@ using namespace std;
 
 #define Nx 50
 #define Ny 50
-#define N_INTERNAL (N-2)
-
-
-/*void print_matrix(double A[N_INTERNAL*N_INTERNAL][N_INTERNAL*N_INTERNAL]){
-	for(int i = 0; i < N_INTERNAL*N_INTERNAL; ++i){
-		for(int j = 0; j < N_INTERNAL*N_INTERNAL; ++j){
-			std::cout << A[i][j] << " ";
-		}
-		std::cout << std::endl;
-	}
-}
-
-
-void print_vector(double b[N_INTERNAL*N_INTERNAL]) {
-		for(int i = 0; i < N_INTERNAL*N_INTERNAL; ++i){
-			std::cout << b[i] << std::endl;
-		}
-}*/
 
 
 int index(int i, int j) {
@@ -34,19 +16,13 @@ int index(int i, int j) {
 }
 
 
-/*int local_index(int i, int j) {			//index matrix in a vector
-	return (i-1) * N_INTERNAL + j - 1;
-}*/
-
-
-
-double g(double x,double y){  //function buondary conditions
+double g(double x,double y){  //function boundary conditions
 	return 1.0;
 }
 
 
 double f(double x,double y){  //main function
-	return 0.0;
+	return 1.0;
 }
 
 
@@ -62,18 +38,18 @@ void jacobi_iteration(double h_square, vector<double> &U_old, vector<double> &U,
 	double b;
 
 	for (int i = 1; i < m.getDimensionY()-1; ++i) {
-			for (int j = 1; j < m.getDimensionX()-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
+		for (int j = 1; j < m.getDimensionX()-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
 				
-				b = function.getValue(i, j) * h_square;
+			b = function.getValue(i, j) * h_square;
 
-				U[index(i,j)] =
-					( b
-					- U_old[index(i+1,j)]
-					- U_old[index(i-1,j)]
-					- U_old[index(i,j+1)]
-					- U_old[index(i,j-1)] ) / (-4.0);
-			}
+			U[index(i,j)] =
+				( b
+				+ U_old[index(i+1,j)]
+				+ U_old[index(i-1,j)]
+				+ U_old[index(i,j+1)]
+				+ U_old[index(i,j-1)] ) / 4.0;
 		}
+	}
 }
 
 
@@ -96,6 +72,7 @@ double compute_residual(double h_square, vector<double> &U, vector<double> &resi
 
 int main (int argc, char *argv[]) {
 	Mesh mesh(-1.0, 0.0, 2.0, 2.0, Nx,Ny);
+
 	ComputeFunctionNode bordo(&mesh,g);
 	ComputeFunctionNode funzione(&mesh,f);
 
@@ -114,19 +91,15 @@ int main (int argc, char *argv[]) {
 	double h_2dimension = mesh.getDiscretizationStepX()*mesh.getDiscretizationStepY();
 
 
-	while(residual_norm>1){
+	while (residual_norm > 1e-6) {
 		// Jacobi iteration
 		jacobi_iteration(h_2dimension,U_old,U,funzione,mesh);
 		residual_norm=compute_residual(h_2dimension,U,residual,funzione);
 		swap(U, U_old);
-		//cout<<residual_norm<<endl;
 	}
 
-	/*for (auto x : U) {
-		cout << x << endl;
-	}*/
 
-	cout<<residual_norm<<endl;
+	export_to_matlab("U", U);
 
 
 	return 0;

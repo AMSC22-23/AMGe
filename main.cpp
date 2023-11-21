@@ -34,6 +34,7 @@ void setup_solution(vector<double> &U, ComputeFunctionNode &b) {  //initialize f
 	}
 }
 
+
 void jacobi_iteration(vector<double> &U_old, vector<double> &U, ComputeFunctionNode &function){  //1 cycle of Jacobi
 	double b;
 	double hx_square= function.getMesh()->getDiscretizationStepX()*function.getMesh()->getDiscretizationStepX();
@@ -48,6 +49,25 @@ void jacobi_iteration(vector<double> &U_old, vector<double> &U, ComputeFunctionN
 					( b
 					+ ((U_old[index(i+1,j)]+U_old[index(i-1,j)])/hx_square)
 					+ ((U_old[index(i,j+1)]+U_old[index(i,j-1)])/hy_square) ) / den;		
+			}
+	}
+}
+
+
+void Gauss_Siedel_iteration(vector<double> &U, ComputeFunctionNode &function){  //1 cycle of Jacobi
+	double b;
+	double hx_square= function.getMesh()->getDiscretizationStepX()*function.getMesh()->getDiscretizationStepX();
+	double hy_square= function.getMesh()->getDiscretizationStepY()*function.getMesh()->getDiscretizationStepY();
+	double den      = ((2.0)*((1/hx_square)+(1/hy_square))); 
+	
+
+	for (int i = 1; i < function.getMesh()->getDimensionY()-1; ++i) {
+			for (int j = 1; j < function.getMesh()->getDimensionX()-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
+				b = function.getValue(i, j);
+				U[index(i,j)] =
+					( b
+					+ ((U[index(i+1,j)]+U[index(i-1,j)])/hx_square)
+					+ ((U[index(i,j+1)]+U[index(i,j-1)])/hy_square) ) / den;		
 			}
 	}
 }
@@ -90,15 +110,31 @@ int main (int argc, char *argv[]) {
 	setup_solution( U_old, bordo);
 	setup_solution( U, bordo);
 
+	//call to jacobi
 
-
-	while (residual_norm > 1e-6) {
+	/*while (residual_norm > 1e-6) {
 		// Jacobi iteration
 		jacobi_iteration(U_old,U,funzione);
 		residual_norm=compute_residual(U,residual,funzione);
 		swap(U, U_old);
-		cout<<residual_norm<<endl;
+		count++;
 	}
+	cout<<residual_norm<<endl;
+	cout<<count<<endl;*/
+
+
+
+	//call to Gauss-Siedel
+	
+	while (residual_norm > 1e-6) {
+		// Jacobi iteration
+		Gauss_Siedel_iteration(U,funzione);
+		residual_norm=compute_residual(U,residual,funzione);
+		count++;
+	}
+	cout<<residual_norm<<endl;
+	cout<<count<<endl;
+
 
 
 	//export_to_matlab("U", U);

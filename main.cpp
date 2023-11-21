@@ -54,7 +54,7 @@ void jacobi_iteration(vector<double> &U_old, vector<double> &U, ComputeFunctionN
 }
 
 
-void Gauss_Siedel_iteration(vector<double> &U, ComputeFunctionNode &function){  //1 cycle of Jacobi
+void Gauss_Siedel_iteration(vector<double> &U, ComputeFunctionNode &function){  //1 cycle of Gauss Siedel
 	double b;
 	double hx_square= function.getMesh()->getDiscretizationStepX()*function.getMesh()->getDiscretizationStepX();
 	double hy_square= function.getMesh()->getDiscretizationStepY()*function.getMesh()->getDiscretizationStepY();
@@ -125,7 +125,7 @@ int main (int argc, char *argv[]) {
 
 
 	//call to Gauss-Siedel
-	
+
 	while (residual_norm > 1e-6) {
 		// Jacobi iteration
 		Gauss_Siedel_iteration(U,funzione);

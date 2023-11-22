@@ -31,35 +31,55 @@ void setup_solution(vector<double> &U, ComputeFunctionNode &b,Mesh m) {  //initi
 }
 
 
-void jacobi_iteration(vector<double> &U_old, vector<double> &U, ComputeFunctionNode &function,Mesh m){  //1 cycle of Jacobi
+void jacobi_iteration(vector<double> &U_old, vector<double> &U, Mesh m,unsigned int level, vector<double> &function){  //1 cycle of Jacobi
 	double b;
-	double hx_square= m.hx*m.hx;
-	double hy_square= m.hy*m.hy;
+	double hx_square= m.hx*pow(2,level)*m.hx*pow(2,level);
+	double hy_square= m.hy*pow(2,level)*m.hy*pow(2,level);
 	double den      = ((2.0)*((1/hx_square)+(1/hy_square))); 
 	
+	if(m.Nx/pow(2,level)>3&&m.Ny>3){
 
-	for (int i = 1; i < m.Nx-1; ++i) {
+	for (int i = 1; i < (m.Nx/pow(2,level))-1; ++i) {
 			for (int j = 1; j < m.Ny-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
-				b = function.getValue(i, j);
+				b = function[m.index(i,j)];
 				U[m.index(i,j)] =
 					( b
 					+ ((U_old[m.index(i+1,j)]+U_old[m.index(i-1,j)])/hx_square)
 					+ ((U_old[m.index(i,j+1)]+U_old[m.index(i,j-1)])/hy_square) ) / den;
 			}
 	}
+	}
 }
 
 
-void Gauss_Siedel_iteration(vector<double> &U, ComputeFunctionNode &function,Mesh m){  //1 cycle of Gauss Siedel
+/*void Jacobi2(vector<double> &U_old, vector<double> &U, vector<double> &function,Mesh m){
+	double b;
+	double hx_square= m.hx*m.hx*4.0;  //m.hx*m.hx*pow(2,level)
+	double hy_square= m.hy*m.hy*4.0;
+	double den      = ((2.0)*((1/hx_square)+(1/hy_square))); 
+	for(int i=2;i<m.Nx-1;i+=2){  //i=pow(2,level), i+=pow(2,level)
+		for(int j=2;j<m.Nx-1;j+=2){
+				b = function[m.index(i,j)];
+				U[m.index(i,j)] =
+					( b
+					+ ((U_old[m.index(i+1,j)]+U_old[m.index(i-1,j)])/hx_square)
+					+ ((U_old[m.index(i,j+1)]+U_old[m.index(i,j-1)])/hy_square) ) / den;
+		}
+	}
+}*/
+
+
+
+void Gauss_Siedel_iteration(vector<double> &U, vector<double> &function,Mesh m){  //1 cycle of Gauss Siedel
 	double b;
 	double hx_square= m.hx*m.hx;
 	double hy_square= m.hy*m.hy;
-	double den      = ((2.0)*((1/hx_square)+(1/hy_square))); 
+	double den      = ((2.0)*((1/hx_square)+(1/hy_square)));
 	
 
 	for (int i = 1; i < m.Nx-1; ++i) {
 			for (int j = 1; j < m.Ny-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
-				b = function.getValue(i, j);
+				b = function[m.index(i,j)];
 				U[m.index(i,j)] =
 					( b
 					+ ((U[m.index(i+1,j)]+U[m.index(i-1,j)])/hx_square)
@@ -106,12 +126,20 @@ int main (int argc, char *argv[]) {
 	setup_solution( U_old, bordo,mesh);
 	setup_solution( U, bordo,mesh);
 
+	vector<double> b(mesh.Nx*mesh.Ny);
+
+	for (int i = 1; i < mesh.Nx-1; ++i) {
+			for (int j = 1; j < mesh.Ny-1; ++j) {     
+				b[mesh.index(i,j)] = funzione.getValue(i, j);
+			}
+	}
+
 	//call to jacobi
 
 	/*while (residual_norm > 1e-6) {
 		// Jacobi iteration
-		jacobi_iteration(U_old,U,funzione,mesh);
-		residual_norm=compute_residual(U,residual,funzione);
+		jacobi_iteration(U_old,U,mesh,0,b);
+		residual_norm=compute_residual(U,residual,funzione,mesh);
 		swap(U, U_old);
 		count++;
 	}
@@ -124,7 +152,7 @@ int main (int argc, char *argv[]) {
 
 	while (residual_norm > 1e-6) {
 		// Jacobi iteration
-		Gauss_Siedel_iteration(U,funzione,mesh);
+		Gauss_Siedel_iteration(U,b,mesh);
 		residual_norm=compute_residual(U,residual,funzione,mesh);
 		count++;
 	}

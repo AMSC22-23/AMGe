@@ -7,13 +7,9 @@
 
 using namespace std;
 
-#define Nx 100
-#define Ny 500
 
-
-int index(int i, int j) {  //mapping from 2D to 1D
-	return i * Ny + j;
-}
+#define Mx 100
+#define My 500
 
 
 double g(double x,double y){  //function boundary conditions
@@ -27,9 +23,9 @@ double f(double x,double y){  //main function
 
 
 void setup_solution(vector<double> &U, ComputeFunctionNode &b,Mesh m) {  //initialize function U to border value
-	for (int i = 0; i < m.getDimensionX(); ++i) {
-		for (int j = 0; j < m.getDimensionY(); ++j) {
-			U[i * m.getDimensionY() + j] = b.getValue(i, j);
+	for (int i = 0; i < m.Nx; ++i) {
+		for (int j = 0; j < m.Ny; ++j) {
+			U[i * m.Ny + j] = b.getValue(i, j);
 		}
 	}
 }
@@ -37,18 +33,18 @@ void setup_solution(vector<double> &U, ComputeFunctionNode &b,Mesh m) {  //initi
 
 void jacobi_iteration(vector<double> &U_old, vector<double> &U, ComputeFunctionNode &function,Mesh m){  //1 cycle of Jacobi
 	double b;
-	double hx_square= m.getDiscretizationStepX()*m.getDiscretizationStepX();
-	double hy_square= m.getDiscretizationStepY()*m.getDiscretizationStepY();
+	double hx_square= m.hx*m.hx;
+	double hy_square= m.hy*m.hy;
 	double den      = ((2.0)*((1/hx_square)+(1/hy_square))); 
 	
 
-	for (int i = 1; i < m.getDimensionX()-1; ++i) {
-			for (int j = 1; j < m.getDimensionY()-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
+	for (int i = 1; i < m.Nx-1; ++i) {
+			for (int j = 1; j < m.Ny-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
 				b = function.getValue(i, j);
-				U[index(i,j)] =
+				U[m.index(i,j)] =
 					( b
-					+ ((U_old[index(i+1,j)]+U_old[index(i-1,j)])/hx_square)
-					+ ((U_old[index(i,j+1)]+U_old[index(i,j-1)])/hy_square) ) / den;		
+					+ ((U_old[m.index(i+1,j)]+U_old[m.index(i-1,j)])/hx_square)
+					+ ((U_old[m.index(i,j+1)]+U_old[m.index(i,j-1)])/hy_square) ) / den;
 			}
 	}
 }
@@ -56,35 +52,35 @@ void jacobi_iteration(vector<double> &U_old, vector<double> &U, ComputeFunctionN
 
 void Gauss_Siedel_iteration(vector<double> &U, ComputeFunctionNode &function,Mesh m){  //1 cycle of Gauss Siedel
 	double b;
-	double hx_square= m.getDiscretizationStepX()*m.getDiscretizationStepX();
-	double hy_square= m.getDiscretizationStepY()*m.getDiscretizationStepY();
+	double hx_square= m.hx*m.hx;
+	double hy_square= m.hy*m.hy;
 	double den      = ((2.0)*((1/hx_square)+(1/hy_square))); 
 	
 
-	for (int i = 1; i < m.getDimensionX()-1; ++i) {
-			for (int j = 1; j < m.getDimensionY()-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
+	for (int i = 1; i < m.Nx-1; ++i) {
+			for (int j = 1; j < m.Ny-1; ++j) {     //iterating over nodes and computing for each one a row of matrix A
 				b = function.getValue(i, j);
-				U[index(i,j)] =
+				U[m.index(i,j)] =
 					( b
-					+ ((U[index(i+1,j)]+U[index(i-1,j)])/hx_square)
-					+ ((U[index(i,j+1)]+U[index(i,j-1)])/hy_square) ) / den;		
+					+ ((U[m.index(i+1,j)]+U[m.index(i-1,j)])/hx_square)
+					+ ((U[m.index(i,j+1)]+U[m.index(i,j-1)])/hy_square) ) / den;
 			}
 	}
 }
 
 
 double compute_residual(vector<double> &U, vector<double> &residual, ComputeFunctionNode &function,Mesh m){    //compute residual vecotr
-	double h_squarex= m.getDiscretizationStepX()*m.getDiscretizationStepX();
-	double h_squarey= m.getDiscretizationStepY()*m.getDiscretizationStepY();
+	double h_squarex= m.hx*m.hx;
+	double h_squarey= m.hy*m.hy;
 	double factor =-2.0*(h_squarex+h_squarey);
 	
-	for (int i = 1; i < m.getDimensionX()-1; ++i) {
-		for (int j = 1; j < m.getDimensionY()-1; ++j) { 
-			residual[index(i,j)] =
+	for (int i = 1; i < m.Nx-1; ++i) {
+		for (int j = 1; j < m.Ny-1; ++j) {
+			residual[m.index(i,j)] =
 				 (h_squarex*h_squarey*function.getValue(i,j))
-				+((U[index(i,j-1)]+U[index(i,j+1)])*h_squarex)
-				+((U[index(i-1,j)]+U[index(i+1,j)])*h_squarey)
-				+factor*U[index(i,j)];
+				+((U[m.index(i,j-1)]+U[m.index(i,j+1)])*h_squarex)
+				+((U[m.index(i-1,j)]+U[m.index(i+1,j)])*h_squarey)
+				+factor*U[m.index(i,j)];
 		}
 	}
 
@@ -93,16 +89,16 @@ double compute_residual(vector<double> &U, vector<double> &residual, ComputeFunc
 
 
 int main (int argc, char *argv[]) {
-	Mesh mesh(-1.0, 0.0, 2.0, 2.0, Nx,Ny);
+	Mesh mesh(-1.0, 0.0, 2.0, 2.0, Mx,My);
 
 	ComputeFunctionNode bordo(&mesh,g);
 	ComputeFunctionNode funzione(&mesh,f);
 
 
-	vector<double> U_old(mesh.getDimensionX()*mesh.getDimensionY());
-	vector<double> U(mesh.getDimensionX()*mesh.getDimensionY());
+	vector<double> U_old(mesh.Nx*mesh.Ny);
+	vector<double> U(mesh.Nx*mesh.Ny);
 	
-	vector<double> residual(mesh.getDimensionX()*mesh.getDimensionY());
+	vector<double> residual(mesh.Nx*mesh.Ny);
 	double residual_norm=100;
 
 	int count =0;

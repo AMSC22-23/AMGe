@@ -1,3 +1,7 @@
+#ifndef __COMPUTE_FUNCTION_NODE_HPP__
+#define __COMPUTE_FUNCTION_NODE_HPP__
+
+
 #include "LatticeMesh.hpp"
 #include "Point.hpp"
 
@@ -24,3 +28,6 @@ private:
     LatticeMesh *M;
     double (*f)(double, double);
 };
+
+
+#endif

@@ -1,3 +1,7 @@
+#ifndef __MESH_HPP__
+#define __MESH_HPP__
+
+
 #include "Point.hpp"
 #include "FunctionNode.hpp"
 #include <string>
@@ -84,3 +88,6 @@ void Mesh::save(std::ostream &out){
 		out << std::endl;
 	}
 }
+
+
+#endif

@@ -1,10 +1,10 @@
-#include "Mesh.hpp"
+#include "LatticeMesh.hpp"
 #include "Point.hpp"
 
 
 class ComputeFunctionNode : public FunctionNode<double> {  //compute mapping of a function from mesh index to R
 public:
-    ComputeFunctionNode(Mesh *_M, double (*_f)(double, double)) : FunctionNode() {
+    ComputeFunctionNode(LatticeMesh *_M, double (*_f)(double, double)) : FunctionNode() {
 	M = _M;
 	f = _f;
     };
@@ -21,6 +21,6 @@ public:
 
 
 private:
-    Mesh *M;
+    LatticeMesh *M;
     double (*f)(double, double);
 };

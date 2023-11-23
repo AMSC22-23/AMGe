@@ -22,7 +22,7 @@ double f(double x,double y){  //main function
 }
 
 
-void setup_solution(vector<double> &U, ComputeFunctionNode &b,Mesh m) {  //initialize function U to border value
+void setup_solution(vector<double> &U, ComputeFunctionNode &b,LatticeMesh m) {  //initialize function U to border value
 	for (int i = 0; i < m.Nx; ++i) {
 		for (int j = 0; j < m.Ny; ++j) {
 			U[i * m.Ny + j] = b.getValue(i, j);
@@ -31,7 +31,7 @@ void setup_solution(vector<double> &U, ComputeFunctionNode &b,Mesh m) {  //initi
 }
 
 
-void jacobi_iteration(vector<double> &U_old, vector<double> &U, Mesh m,unsigned int level, vector<double> &function){  //1 cycle of Jacobi
+void jacobi_iteration(vector<double> &U_old, vector<double> &U, LatticeMesh m,unsigned int level, vector<double> &function){  //1 cycle of Jacobi
 	double b;
 	double hx_square= m.hx*pow(2,level)*m.hx*pow(2,level);
 	double hy_square= m.hy*pow(2,level)*m.hy*pow(2,level);
@@ -52,7 +52,7 @@ void jacobi_iteration(vector<double> &U_old, vector<double> &U, Mesh m,unsigned 
 }
 
 
-/*void Jacobi2(vector<double> &U_old, vector<double> &U, vector<double> &function,Mesh m){
+/*void Jacobi2(vector<double> &U_old, vector<double> &U, vector<double> &function,LatticeMesh m){
 	double b;
 	double hx_square= m.hx*m.hx*4.0;  //m.hx*m.hx*pow(2,level)
 	double hy_square= m.hy*m.hy*4.0;
@@ -70,7 +70,7 @@ void jacobi_iteration(vector<double> &U_old, vector<double> &U, Mesh m,unsigned 
 
 
 
-void Gauss_Siedel_iteration(vector<double> &U, vector<double> &function,Mesh m){  //1 cycle of Gauss Siedel
+void Gauss_Siedel_iteration(vector<double> &U, vector<double> &function,LatticeMesh m){  //1 cycle of Gauss Siedel
 	double b;
 	double hx_square= m.hx*m.hx;
 	double hy_square= m.hy*m.hy;
@@ -89,7 +89,7 @@ void Gauss_Siedel_iteration(vector<double> &U, vector<double> &function,Mesh m){
 }
 
 
-double compute_residual(vector<double> &U, vector<double> &residual, ComputeFunctionNode &function,Mesh m){    //compute residual vecotr
+double compute_residual(vector<double> &U, vector<double> &residual, ComputeFunctionNode &function,LatticeMesh m){    //compute residual vecotr
 	double h_squarex= m.hx*m.hx;
 	double h_squarey= m.hy*m.hy;
 	double factor =-2.0*(h_squarex+h_squarey);
@@ -109,7 +109,7 @@ double compute_residual(vector<double> &U, vector<double> &residual, ComputeFunc
 
 
 int main (int argc, char *argv[]) {
-	Mesh mesh(-1.0, 0.0, 2.0, 2.0, Mx,My);
+	LatticeMesh mesh(-1.0, 0.0, 2.0, 2.0, Mx,My);
 
 	ComputeFunctionNode bordo(&mesh,g);
 	ComputeFunctionNode funzione(&mesh,f);

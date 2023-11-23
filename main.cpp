@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include "LatticeMesh.hpp"
 #include "ComputeFunctionNode.hpp"
 #include "Utils.hpp"
 

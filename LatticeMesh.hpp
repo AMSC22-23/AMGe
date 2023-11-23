@@ -29,8 +29,8 @@ public:
 		, hx(width / static_cast<double>(Nx-1))
 		, hy(width / static_cast<double>(Ny-1))
 	{
-		for (int i = 1; i < Nx; ++i) {
-			for (int j = 1; j < Ny; ++j) {
+		for (int j = 1; j < Ny-1; ++j) {
+			for (int i = 1; i < Nx-1; ++i) {
 				inner_nodes.push_back(i + j * Nx);
 			}
 		}

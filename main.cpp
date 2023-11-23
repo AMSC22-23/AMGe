@@ -9,10 +9,6 @@
 using namespace std;
 
 
-#define Mx 100
-#define My 500
-
-
 double g(double x,double y){  //function boundary conditions
 	return 1.0;
 }
@@ -109,60 +105,48 @@ double compute_residual(vector<double> &U, vector<double> &residual, ComputeFunc
 }
 
 
+void jacobi(LatticeMesh &mesh, std::vector<double> &U, std::vector<double> &Old, std::vector<double> &b){
+	const double hx_square = mesh.hx * mesh.hx;
+	const double hy_square = mesh.hy * mesh.hy;
+	const double den       = 2.0 * ((1.0 / hx_square) + (1.0 / hy_square));
+
+
+	for (Index i : mesh.get_inner_nodes()) {
+		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
+
+
+		U[i] = (
+			  b[i]
+			+ ((Old[ovest] + Old[est]) / hx_square)
+			+ ((Old[nord]  + Old[sud]) / hy_square)
+		) / den;
+	}
+}
+
+
 int main (int argc, char *argv[]) {
-	LatticeMesh mesh(-1.0, 0.0, 2.0, 2.0, Mx,My);
-
-	ComputeFunctionNode bordo(&mesh,g);
-	ComputeFunctionNode funzione(&mesh,f);
+	const int Nx = 50;
+	const int Ny = 50;
 
 
-	vector<double> U_old(mesh.Nx*mesh.Ny);
-	vector<double> U(mesh.Nx*mesh.Ny);
-	
-	vector<double> residual(mesh.Nx*mesh.Ny);
-	double residual_norm=100;
+	LatticeMesh mesh(-1.0, 0.0, 2.0, 2.0, Nx,Ny);
+	vector<double> Old(Nx*Ny);
+	vector<double> U(Nx*Ny);
+	vector<double> F(Nx*Ny);
 
-	int count =0;
 
-	setup_solution( U_old, bordo,mesh);
-	setup_solution( U, bordo,mesh);
+	mesh.evaluate_function(U, g);
+	mesh.evaluate_function(Old, g);
+	mesh.evaluate_function(F, f);
 
-	vector<double> b(mesh.Nx*mesh.Ny);
 
-	for (int i = 1; i < mesh.Nx-1; ++i) {
-			for (int j = 1; j < mesh.Ny-1; ++j) {     
-				b[mesh.index(i,j)] = funzione.getValue(i, j);
-			}
+	for (int it = 0; it < 1000; ++it) {
+		jacobi(mesh, U, Old, F);
+		std::swap(U, Old);
 	}
 
-	//call to jacobi
 
-	/*while (residual_norm > 1e-6) {
-		// Jacobi iteration
-		jacobi_iteration(U_old,U,mesh,0,b);
-		residual_norm=compute_residual(U,residual,funzione,mesh);
-		swap(U, U_old);
-		count++;
-	}
-	cout<<residual_norm<<endl;
-	cout<<count<<endl;*/
-
-
-
-	//call to Gauss-Siedel
-
-	while (residual_norm > 1e-6) {
-		// Jacobi iteration
-		Gauss_Siedel_iteration(U,b,mesh);
-		residual_norm=compute_residual(U,residual,funzione,mesh);
-		count++;
-	}
-	cout<<residual_norm<<endl;
-	cout<<count<<endl;
-
-
-
-	//export_to_matlab("U", U);
+	export_to_matlab("U", U);
 
 
 	return 0;

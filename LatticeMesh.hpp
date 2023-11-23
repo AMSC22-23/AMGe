@@ -28,7 +28,13 @@ public:
 		, Ny(_Ny)
 		, hx(width / static_cast<double>(Nx-1))
 		, hy(width / static_cast<double>(Ny-1))
-	{}
+	{
+		for (int i = 1; i < Nx; ++i) {
+			for (int j = 1; j < Ny; ++j) {
+				inner_nodes.push_back(i + j * Nx);
+			}
+		}
+	}
 
 
 	Point getValue(int i, int j) {
@@ -71,6 +77,11 @@ public:
 			/* OVEST */ , i + 1
 			/* EST   */ , i - 1
 		);
+	}
+
+
+	virtual std::vector<Index> get_inner_nodes() override {
+		return inner_nodes;
 	}
 
 

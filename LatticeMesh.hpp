@@ -3,7 +3,6 @@
 
 
 #include "Point.hpp"
-#include "FunctionNode.hpp"
 #include "Mesh.hpp"
 #include <iostream>
 #include <string>

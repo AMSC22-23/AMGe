@@ -33,6 +33,10 @@ public:
 				inner_nodes.push_back(i + j * Nx);
 			}
 		}
+
+
+		/* controlla se non posso dividermi ancora */
+		/* controlla che le divisioni siano 2^n + 1 */
 	}
 
 
@@ -84,12 +88,35 @@ public:
 	}
 
 
+	LatticeMesh build_coarse() {
+		return LatticeMesh(
+			  x
+			, y
+			, width
+			, height
+			, Nx / 2 + 1
+			, Ny / 2 + 1
+		);
+	}
+
+
+	void project_on_coarse(const std::vector<double> &u_fine, std::vector<double> &u_coarse) {
+
+	}
+
+
+	void interpolate_on_fine(const std::vector<double> &u_fine, std::vector<double> &u_coarse) {
+
+	}
+
+
 	~LatticeMesh() {};
 
 
 	const unsigned int Nx, Ny;
 	const double x,y,width,height;
 	const double hx,hy;
+	bool is_minimal;
 };
 
 

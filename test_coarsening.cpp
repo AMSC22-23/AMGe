@@ -14,7 +14,7 @@ int main (int argc, char *argv[]) {
 	const int Ny = 7;
 
 
-	LatticeMesh mesh(-1.0, 0.0, 2.0, 2.0, Nx,Ny);
+	LatticeMesh mesh(0.0, 0.0, 1.0, 1.0, Nx,Ny);
 	LatticeMesh coarse = mesh.build_coarse();
 
 

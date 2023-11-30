@@ -10,10 +10,10 @@
 #include "Utils.hpp"
 
 
-class LatticeMesh : Mesh {   //map from mesh to omega
+class LatticeMesh : Mesh {
 public:
 	LatticeMesh(
-		double _x
+		  double _x
 		, double _y
 		, double _width
 		, double _height
@@ -27,22 +27,21 @@ public:
 		, Nx(_Nx)
 		, Ny(_Ny)
 		, hx(width / static_cast<double>(Nx-1))
-		, hy(width / static_cast<double>(Ny-1))
-	{
+		, hy(width / static_cast<double>(Ny-1)) {
+
 		for (int j = 1; j < Ny-1; ++j) {
 			for (int i = 1; i < Nx-1; ++i) {
 				inner_nodes.push_back(i + j * Nx);
 			}
 		}
-		if(Ny<=3||Nx<=3||!is_2nplusone(Nx)||!is_2nplusone(Ny)){
-			is_minimal=true;
-		}else{
-			is_minimal=false;
-		}
 
 
-		/* controlla se non posso dividermi ancora */
-		/* controlla che le divisioni siano 2^n + 1 */
+		// se una LatticeMesh fosse 3x65, potrebbe ammettere ancora suddivisioni sulla seconda dimensione, sistemare
+		is_minimal = 
+			   (Ny <= 3)
+			or (Nx <= 3)
+			or (!is_2nplusone(Nx))
+			or (!is_2nplusone(Ny));
 	}
 
 
@@ -50,10 +49,9 @@ public:
 		return i + j * Nx;
 	}
 
-	std::pair<int,int> inverse_index(Index i){
-		
-		return std::pair<int,int>(i%Nx,i/Nx);
 
+	std::pair<int,int> inverse_index(Index i){
+		return std::pair<int,int>(i%Nx, i/Nx);
 	} 
 
 
@@ -106,14 +104,15 @@ public:
 
 	void project_on_coarse(const std::vector<double> &u_fine, std::vector<double> &u_coarse) {
 		std::pair<int,int> p;
-		int j=0;
-		for(Index i = 0;i< Nx*Ny;i++){
-			p=inverse_index(i);
-			if(p.first%2==0 && (p.second)%2==0){
-				u_coarse[j]=u_fine[i];
+		int j = 0;
+
+		for (Index i = 0;i < Nx*Ny; i++) {
+			auto [k, l] = inverse_index(i);
+
+			if(k % 2 ==0 and l % 2 == 0) {
+				u_coarse[j] = u_fine[i];
 				j++;
 			}
-		
 		}
 	}
 

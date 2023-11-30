@@ -1,5 +1,6 @@
 #ifndef __UTILS_HPP__
 #define __UTILS_HPP__
+#include <bitset>
 
 
 double norm(std::vector<double> &v){
@@ -30,15 +31,31 @@ void export_to_matlab(const char *name, std::vector<double> &v, std::ostream &ou
 }
 
 bool is_2nplusone(int n){
-	int index=0;
-
-	while(pow(2,index)+1<=n){
-		if(pow(2,index)+1==n){
-			return true;
-		}
-		index++;
+	int count=0;
+	std::bitset<64> bits(n);
+	
+	if(bits.test(0)==0){
+		return false;
 	}
-	return false;
+
+	for (int i=1;i<64;i++){
+		
+		if(bits.test(i)==1){
+			count++;
+			
+			if(count==2){
+				return false;
+			}
+
+		}
+	
+	}
+
+	if(count==0){
+		return false;
+	}
+	
+	return true;
 }
 
 

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <tuple>
+#include "Utils.hpp"
 
 
 class LatticeMesh : Mesh {   //map from mesh to omega
@@ -33,6 +34,11 @@ public:
 				inner_nodes.push_back(i + j * Nx);
 			}
 		}
+		if(Ny<=3||Nx<=3||!is_2nplusone(Nx)||!is_2nplusone(Ny)){
+			is_minimal=true;
+		}else{
+			is_minimal=false;
+		}
 
 
 		/* controlla se non posso dividermi ancora */
@@ -48,9 +54,15 @@ public:
 	}
 
 
-	int index(int i, int j) {
+	/*int index(int i, int j) {
 		return i * Ny + j;
-	}
+	}*/
+
+	std::pair<int,int> inverse_index(Index i){
+		
+		return std::pair<int,int>(i%Nx,i/Nx);
+
+	} 
 
 
 	void save(std::ostream &);
@@ -101,7 +113,16 @@ public:
 
 
 	void project_on_coarse(const std::vector<double> &u_fine, std::vector<double> &u_coarse) {
-
+		std::pair<int,int> p;
+		int j=0;
+		for(Index i = 0;i< Nx*Ny;i++){
+			p=inverse_index(i);
+			if(p.first%2==0 && (p.second)%2==0){
+				u_coarse[j]=u_fine[i];
+				j++;
+			}
+		
+		}
 	}
 
 

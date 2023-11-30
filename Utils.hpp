@@ -29,5 +29,18 @@ void export_to_matlab(const char *name, std::vector<double> &v, std::ostream &ou
 	out << '\n' << '\n';
 }
 
+bool is_2nplusone(int n){
+	int index=0;
+
+	while(pow(2,index)+1<=n){
+		if(pow(2,index)+1==n){
+			return true;
+		}
+		index++;
+	}
+	return false;
+}
+
+
 
 #endif

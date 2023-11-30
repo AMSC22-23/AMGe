@@ -46,17 +46,9 @@ public:
 	}
 
 
-	Point getValue(int i, int j) {
-		return Point(
-			x + i * hx
-			,y + j * hy
-		);
+	Index index(int i, int j) {
+		return i + j * Nx;
 	}
-
-
-	/*int index(int i, int j) {
-		return i * Ny + j;
-	}*/
 
 	std::pair<int,int> inverse_index(Index i){
 		
@@ -126,8 +118,33 @@ public:
 	}
 
 
-	void interpolate_on_fine(const std::vector<double> &u_fine, std::vector<double> &u_coarse) {
+	void interpolate_on_fine(LatticeMesh &coarse, std::vector<double> &u_fine, const std::vector<double> &u_coarse) {
+		// devo iterare solo sui nodi interni
+		for (int i = 1; i < Nx-1; ++i) {
+			for (int j = 1; j < Ny-1; ++j) {
 
+				if (i % 2 == 0 and j % 2 == 0) {
+					u_fine[index(i,j)] = u_coarse[coarse.index(i/2, j/2)];
+				}
+				else if (i % 2 == 1 and j % 2 == 0) {
+					u_fine[index(i,j)] =
+						  0.5 * u_coarse[coarse.index(    i/2, j/2)]
+						+ 0.5 * u_coarse[coarse.index(1 + i/2, j/2)];
+				}
+				else if(i % 2 == 0 and j % 2 == 1) {
+					u_fine[index(i,j)] =
+						  0.5 * u_coarse[coarse.index(i/2,     j/2)]
+						+ 0.5 * u_coarse[coarse.index(i/2, 1 + j/2)];
+				}
+				else {
+					u_fine[index(i,j)] =
+						  0.25 * u_coarse[coarse.index(    i/2,     j/2)]
+						+ 0.25 * u_coarse[coarse.index(    i/2, 1 + j/2)]
+						+ 0.25 * u_coarse[coarse.index(1 + i/2,     j/2)]
+						+ 0.25 * u_coarse[coarse.index(1 + i/2, 1 + j/2)];
+				}
+			}
+		}
 	}
 
 

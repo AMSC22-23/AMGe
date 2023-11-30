@@ -20,8 +20,8 @@ double f(double x,double y){  //main function
 
 
 
-double compute_error(vector<double> exact_solution, vector<double> computed_solution,int dim){
-	vector<double> error(dim);
+double compute_error(const std::vector<double> &exact_solution, const std::vector<double> &computed_solution, int dim){
+	std::vector<double> error(dim);
 	for(Index i = 0; i < dim; i++){
 		error[i]=exact_solution[i]-computed_solution[i];
 	}
@@ -30,7 +30,7 @@ double compute_error(vector<double> exact_solution, vector<double> computed_solu
 
 
 
-void gauss_seidel(LatticeMesh mesh, vector<double> &U, vector<double> &b){  //1 cycle of Gauss Siedel
+void gauss_seidel(LatticeMesh mesh, std::vector<double> &U, std::vector<double> &b){  //1 cycle of Gauss Siedel
 	const double hx_square = mesh.hx * mesh.hx;
 	const double hy_square = mesh.hy * mesh.hy;
 	const double den       = 2.0 * ((1.0 / hx_square) + (1.0 / hy_square));
@@ -51,28 +51,32 @@ void gauss_seidel(LatticeMesh mesh, vector<double> &U, vector<double> &b){  //1 
 
 
 int main(int argc, char *argv[]){
-    const int Nx = 5;
-    const int Ny = 5;
+	const int Nx = 50;
+	const int Ny = 50;
 
 
-    LatticeMesh mesh(0.0, 0.0, 1.0, 1.0, Nx,Ny);
-    
-    vector<double> U(Nx*Ny);
-	vector<double> F(Nx*Ny);
+	LatticeMesh mesh(0.0, 0.0, 1.0, 1.0, Nx,Ny);
 
 
-    mesh.evaluate_function(U, g);
+	std::vector<double> U_exact(Nx*Ny);
+	std::vector<double> U_computed(Nx*Ny);
+	std::vector<double> F(Nx*Ny);
+
+
+	mesh.evaluate_function(U_exact, g);
+	mesh.evaluate_function(U_computed, g);
 	mesh.evaluate_function(F, f);
 
-    vector<double> solution(Nx*Ny);
 
-    mesh.evaluate_function(solution, g);
-    for (int it = 0; it < 1000; ++it) {
-		//gauss_seidel(mesh, U, F);
-		gauss_seidel(mesh, U, F);
+	for (Index i : mesh.get_inner_nodes()) {
+		U_computed[i] = 0.0;
 	}
 
-    cout<<compute_error(solution,U,Nx*Ny);
+
+	for (int it = 0; it < 10000; ++it) {
+		gauss_seidel(mesh, U_computed, F);
+	}
 
 
+	std::cout << compute_error(U_computed, U_exact, Nx*Ny);
 }

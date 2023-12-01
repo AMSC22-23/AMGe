@@ -1,8 +1,13 @@
+CFLAGS=-std=c++17
+
+
 all:
-	g++ -o test main.cpp -std=c++17
+	g++ -o test main.cpp $(CFLAGS)
 
-run: all
-	./test
 
-mesh:
-	g++ -o test test.cpp -std=c++17
+coarse:
+	g++ -o coarsening test_coarsening.cpp $(CFLAGS)
+
+
+multigrid:
+	g++ -o multigrid test_multigrid.cpp $(CFLAGS)

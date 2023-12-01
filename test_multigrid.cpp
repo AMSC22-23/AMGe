@@ -122,11 +122,11 @@ void gauss_seidel(LatticeMesh mesh, std::vector<double> &U, std::vector<double> 
 
 
 int main(int argc, char *argv[]){
-	const int Nx = 65;
-	const int Ny = 65;
+	const int Nx = 257;
+	const int Ny = 257;
 
 
-	LatticeMesh fine(0.0, 0.0, 1.0, 1.0, Nx,Ny);
+	LatticeMesh fine(0.0, 0.0, 0.1, 0.1, Nx,Ny);
 	LatticeMesh coarse = fine.build_coarse();
 
 
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]){
 
 
 	/* iniziamo con il multigrid */
-	for (int it = 0; it < 2000; ++it) {
+	for (int it = 0; it < 500; ++it) {
 		gauss_seidel(fine, U_fine, F);
 		gauss_seidel(fine, U_fine, F);
 		gauss_seidel(fine, U_fine, F);
@@ -176,13 +176,13 @@ int main(int argc, char *argv[]){
 			U_fine[i] += err_fine[i];
 		}
 
-		//8.79e-12
 
 
 
 		gauss_seidel(fine, U_fine, F);
 		gauss_seidel(fine, U_fine, F);
 		gauss_seidel(fine, U_fine, F);
+		std::cout<<it<<std::endl;
 	}
 
 
@@ -191,4 +191,3 @@ int main(int argc, char *argv[]){
 
 	return 0;
 }
-

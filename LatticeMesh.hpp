@@ -85,6 +85,18 @@ public:
 	}
 
 
+	virtual std::tuple<Index, Index, Index, Index> get_diagonal_neighbours(Index i)  {
+		// nessun controllo fatto ai bordi, usare con cautela
+		return std::make_tuple(
+			/* NORD  */   i + Nx + 1
+			/* SUD   */ , i + Nx - 1
+			/* OVEST */ , i - Nx + 1
+			/* EST   */ , i - Nx - 1
+		);
+	}
+
+
+
 	virtual const std::vector<Index>& get_inner_nodes() override {
 		return inner_nodes;
 	}
@@ -102,6 +114,7 @@ public:
 	}
 
 
+
 	void project_on_coarse(const std::vector<double> &u_fine, std::vector<double> &u_coarse) {
 		std::pair<int,int> p;
 		int j = 0;
@@ -110,7 +123,25 @@ public:
 			auto [k, l] = inverse_index(i);
 
 			if(k % 2 ==0 and l % 2 == 0) {
-				u_coarse[j] = u_fine[i];
+				
+				if(k==0||k==Nx*Ny-1||l==0||l==Nx*Ny-1){
+					u_coarse[j] = u_fine[i];
+				}
+				
+				else{
+					const auto [nord, sud, ovest, est] = get_cardinal_neighbours(i);
+					const auto [a,b,c,d]               = get_diagonal_neighbours(i);
+					u_coarse[j] = 0.25   * u_fine[i]
+								+ 0.125  * u_fine[nord]
+								+ 0.125  * u_fine[sud]
+								+ 0.125  * u_fine[ovest]
+								+ 0.125  * u_fine[est]
+								+ 0.0625 * u_fine[a]
+								+ 0.0625 * u_fine[b]
+								+ 0.0625 * u_fine[c]
+								+ 0.0625 * u_fine[d];
+				}
+				
 				j++;
 			}
 		}

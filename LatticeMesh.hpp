@@ -85,7 +85,7 @@ public:
 	}
 
 
-	virtual std::vector<Index> get_inner_nodes() override {
+	virtual const std::vector<Index>& get_inner_nodes() override {
 		return inner_nodes;
 	}
 

@@ -15,7 +15,7 @@ public:
 	virtual Point get_point_coordinate(Index i) = 0;
 	virtual void evaluate_function(std::vector<double> &U, double (*f)(double, double)) = 0;
 	virtual std::tuple<Index, Index, Index, Index> get_cardinal_neighbours(Index i) = 0;
-	virtual std::vector<Index> get_inner_nodes() = 0;
+	virtual const std::vector<Index>& get_inner_nodes() = 0;
 	~Mesh(){};
 
 

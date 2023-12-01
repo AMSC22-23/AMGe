@@ -2,8 +2,8 @@ CFLAGS=-std=c++17
 
 
 all:
-	g++ -o test main.cpp $(CFLAGS)
-
+	g++ -o multigrid test_multigrid.cpp $(CFLAGS)
+	./multigrid
 
 coarse:
 	g++ -o coarsening test_coarsening.cpp $(CFLAGS)
@@ -11,3 +11,8 @@ coarse:
 
 multigrid:
 	g++ -o multigrid test_multigrid.cpp $(CFLAGS)
+
+
+convergence:
+	g++ -o convergence test_convergence.cpp $(CFLAGS)
+	./convergence

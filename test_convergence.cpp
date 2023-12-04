@@ -70,18 +70,15 @@ void gauss_seidel(LatticeMesh mesh, std::vector<double> &U, std::vector<double> 
 
 }
 
-
 int main(int argc, char *argv[]){
-	for (int Nx = 1; Nx < 50; ++Nx) {
-		int Ny = Nx;
+	for (int lvl = 0; lvl < 8; ++lvl) {
+		int N = (2 << lvl) + 1;
+		LatticeMesh mesh(0.0, 0.0, 1.0, 1.0, N, N);
 
-
-		LatticeMesh mesh(0.0, 0.0, 1.0, 1.0, Nx,Ny);
-
-		std::vector<double> U_exact(Nx*Ny);
-		std::vector<double> residual(Nx*Ny);
-		std::vector<double> U_computed(Nx*Ny);
-		std::vector<double> F(Nx*Ny);
+		std::vector<double> U_exact(N*N);
+		std::vector<double> residual(N*N);
+		std::vector<double> U_computed(N*N);
+		std::vector<double> F(N*N);
 
 
 		mesh.evaluate_function(U_exact, g);
@@ -98,12 +95,14 @@ int main(int argc, char *argv[]){
 		do {
 			gauss_seidel(mesh, U_computed, F);
 			++it;
-		} while (compute_residual(mesh, U_computed, residual, F) > 1e-6);
-		//} while (it < 1000);
+		} while (compute_residual(mesh, U_computed, residual, F) > 1e-14);
 
 
-		std::cout << "iterazioni " << it << std::endl;
-		std::cout << "errore     " << compute_error(U_exact, U_computed, Nx*Ny) << std::endl;
+		// here error should be diminish with N but it is not
+		std::cout << "iterazioni:" << it << std::endl;
+		std::cout << "N:         " << N << std::endl;
+		std::cout << "errore:    " << compute_error(U_exact, U_computed, N*N) << std::endl;
+		std::cout << "================" << std::endl;
 	}
 
 

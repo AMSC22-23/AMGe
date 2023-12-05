@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -8,66 +9,48 @@
 using namespace std;
 
 
-
-double g(double x,double y){  //function boundary conditions
-	return ((x*x*x)/6.0)+((y*y*y)/6.0);
-}
-
-
-double f(double x,double y){  //main function
-	return -x-y;
-}
-
-
-
 double compute_error(const std::vector<double> &exact_solution, const std::vector<double> &computed_solution, int dim){
 	std::vector<double> error(dim);
 	for(Index i = 0; i < dim; i++){
 		error[i]=exact_solution[i]-computed_solution[i];
 	}
+
 	return norm(error);
+	//return *std::max_element(error.begin(), error.end());
 }
 
 
-double compute_residual(LatticeMesh mesh, vector<double> &U, vector<double> &residual, vector<double> &b){    //compute residual vecotr
-	double hx_square= mesh.hx*mesh.hx;
-	double hy_square= mesh.hy*mesh.hy;
-	double factor =-2.0*(hx_square+hy_square);
-	
+double compute_residual(LatticeMesh mesh, vector<double> &u, vector<double> &r, vector<double> &b){    //compute residual vecotr
+	const double h = mesh.hx;
 
-	for(Index i : mesh.get_inner_nodes()){
+	for (Index i : mesh.get_inner_nodes()) {
 		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-		
-		
-		residual[i] = (
-						hx_square*hy_square*b[i]
-					   +((U[nord]+U[sud])*hy_square)
-					   +((U[ovest]+U[est])*hx_square)
-					   +factor*U[i]
-					   );
+
+		r[i] = h*h*b[i] + u[nord] + u[sud] + u[ovest] + u[est] - 4.0 * u[i];
 	}
 
-	return norm(residual);
+	return norm(r);
 }
 
 
-void gauss_seidel(LatticeMesh mesh, std::vector<double> &U, std::vector<double> &b){  //1 cycle of Gauss Siedel
-	const double hx_square = mesh.hx * mesh.hx;
-	const double hy_square = mesh.hy * mesh.hy;
-	const double den       = 2.0 * ((1.0 / hx_square) + (1.0 / hy_square));
-	
+void gauss_seidel(LatticeMesh &mesh, std::vector<double> &u, std::vector<double> &b) {
+	const double h = mesh.hx;
 
-	for(Index i : mesh.get_inner_nodes()){
+	for (Index i : mesh.get_inner_nodes()) {
 		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-		
-		
-		U[i] = (
-			  b[i]
-			+ ((U[ovest] + U[est]) / hx_square)
-			+ ((U[nord]  + U[sud]) / hy_square)
-		) / den;
-	}
 
+		u[i] = 0.25 * (h*h*b[i] + u[nord] + u[sud] + u[ovest] + u[est]);
+	}
+}
+
+
+double g(double x,double y){
+	return std::cos(2.0 * M_PI * x) * std::cos(2.0 * M_PI * y);
+}
+
+
+double f(double x,double y){
+	return 8.0 * M_PI * M_PI * std::cos(2.0 * M_PI * x) * std::cos(2.0 * M_PI * y);
 }
 
 int main(int argc, char *argv[]){

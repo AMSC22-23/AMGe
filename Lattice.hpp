@@ -133,6 +133,19 @@ public:
 	}
 
 
+	void evaluate_forcing_term(std::vector<double> &b, double (*f)(double x, double y)) {
+		for (int j = 0; j < N; ++j) {
+			for (int i = 0; i < N; ++i) {
+				double x = x_corner + i * h * width;
+				double y = y_corner + j * h * height;
+
+
+				b[index(i,j)] = h * h * f(x,y);
+			}
+		}
+	}
+
+
 	void evaluate_function(std::vector<double> &u, double (*f)(double x, double y)) {
 		for (int j = 0; j < N; ++j) {
 			for (int i = 0; i < N; ++i) {

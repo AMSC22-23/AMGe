@@ -84,8 +84,62 @@ void jacobi(LatticeMesh &mesh, std::vector<double> &U, std::vector<double> &Old,
 */
 
 
+void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {
+	for (Index i : mesh.get_inner_nodes()) {
+		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
+
+		r[i] = 4.0 * u[i] - u[nord] - u[sud] - u[ovest] - u[est] - b[i];
+	}
+}
+
+
+void gseidel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b) {
+	for (Index i : mesh.get_inner_nodes()) {
+		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
+
+		u[i] = 0.25 * (b[i] + u[nord] + u[sud] + u[ovest] + u[est]);
+	}
+}
+
+
+void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double x, double y)) {
+	mesh.evaluate_function(u, g);
+
+	for (Index i : mesh.get_inner_nodes()) {
+		u[i] = 0.0;
+	}
+}
+
+
+double g(double x,double y) {
+	return x * x * x * x * x / 20.0 + y * y * y * y * y / 20.0;
+}
+
+
+double f(double x,double y) {
+	return -(x * x * x + y * y * y);
+}
+
+
 int main (int argc, char *argv[]) {
-	Lattice mesh(0.0, 0.0, 1.0, 1.0, 5);
+	Lattice mesh(0.0, 0.0, 1.0, 1.0, 65);
+
+
+	std::vector<double> u(mesh.numel());
+	std::vector<double> b(mesh.numel());
+	std::vector<double> r(mesh.numel());
+
+
+	set_initial_guess(mesh, u, g);
+	mesh.evaluate_forcing_term(b, f);
+
+
+	for (int i = 0; i < 10000; ++i) {
+		gseidel(mesh, u, b);
+
+		residual(mesh, u, b, r);
+		std::cout << norm(r) << std::endl;
+	}
 
 	/*
 	const int Nx = 50;

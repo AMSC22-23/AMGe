@@ -1,12 +1,13 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include "LatticeMesh.hpp"
+#include "Lattice.hpp"
 #include "Utils.hpp"
 
 
 using namespace std;
 
+/*
 
 double g(double x,double y){  //function boundary conditions
 	return 1.0;
@@ -80,9 +81,13 @@ void jacobi(LatticeMesh &mesh, std::vector<double> &U, std::vector<double> &Old,
 		) / den;
 	}
 }
+*/
 
 
 int main (int argc, char *argv[]) {
+	Lattice mesh(0.0, 0.0, 1.0, 1.0, 5);
+
+	/*
 	const int Nx = 50;
 	const int Ny = 50;
 
@@ -113,6 +118,7 @@ int main (int argc, char *argv[]) {
 
 
 	export_to_matlab("U", U);
+	*/
 
 
 	return 0;

@@ -7,6 +7,7 @@ all:
 	./multigrid > twolvl.txt
 	g++ -o multigrid test_multigrid.cpp $(CFLAGS) $(OPT)
 	./multigrid > gseidel.txt
+	octave --persist report.m
 
 coarse:
 	g++ -o coarsening test_coarsening.cpp $(CFLAGS)

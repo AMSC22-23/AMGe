@@ -8,6 +8,17 @@
 using namespace std;
 
 
+#ifndef PRE_SMOOTHING_STEPS
+#define PRE_SMOOTHING_STEPS 10
+#endif
+
+#ifndef POST_SMOOTHING_STEPS
+#define POST_SMOOTHING_STEPS 10
+#endif
+
+
+
+
 void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {
 	for (Index i : mesh.get_inner_nodes()) {
 		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
@@ -40,7 +51,7 @@ void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vect
 	std::vector<double> r_coarse(coarse.numel());
 	std::vector<double> e_coarse(coarse.numel());
 
-	for (int pre = 0; pre < 10; ++pre) {
+	for (int pre = 0; pre < PRE_SMOOTHING_STEPS; ++pre) {
 			gseidel(fine, u, b);
 		}
 	
@@ -63,7 +74,7 @@ void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vect
 			u[i] -= e_fine[i];
 		}
 
-		for (int post = 0; post < 10; ++post) {
+		for (int post = 0; post < POST_SMOOTHING_STEPS; ++post) {
 			gseidel(fine, u, b);
 		}
 }
@@ -107,15 +118,17 @@ int main (int argc, char *argv[]) {
 
 
 	for (int i = 0; i < 1000; ++i) {
-		//two_level(fine, coarse, u_fine, b);
-		for (int pre = 0; pre < 20; ++pre) {
-			gseidel(fine, u_fine, b);
-		}
+		#ifdef MULTIGRID
+			two_level(fine, coarse, u_fine, b);
+		#else
+			for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
+				gseidel(fine, u_fine, b);
+			}
+		#endif
 
 		residual(fine, u_fine, b, r_fine);
-		std::cout <<i<<" "<< norm(r_fine) << std::endl;
+		std::cout << norm(r_fine) << std::endl;
 	}
-
 
 
 	return 0;

@@ -37,6 +37,21 @@ void gseidel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b
 }
 
 
+void jacobi(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b) {
+	// occhio al bordo
+	std::vector<double> old(mesh.numel());
+	for (int i = 0; i < mesh.numel(); ++i) {
+		old[i] = u[i];
+	}
+
+	for (Index i : mesh.get_inner_nodes()) {
+		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
+
+		u[i] = 0.25 * (b[i] + old[nord] + old[sud] + old[ovest] + old[est]);
+	}
+}
+
+
 void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double x, double y)) {
 	mesh.evaluate_function(u, g);
 
@@ -53,6 +68,7 @@ void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vect
 
 	for (int pre = 0; pre < PRE_SMOOTHING_STEPS; ++pre) {
 			gseidel(fine, u, b);
+			//jacobi(fine, u, b);
 		}
 	
 		residual(fine, u, b, r_fine);
@@ -66,6 +82,7 @@ void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vect
 
 		for (int coarse_it = 0; coarse_it < 300; ++coarse_it) {
 			gseidel(coarse, e_coarse, r_coarse);
+			//jacobi(coarse, e_coarse, r_coarse);
 		}
 
 		fine.interpolate_on_fine(coarse, e_fine, e_coarse);
@@ -76,6 +93,7 @@ void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vect
 
 		for (int post = 0; post < POST_SMOOTHING_STEPS; ++post) {
 			gseidel(fine, u, b);
+			//jacobi(fine, u, b);
 		}
 }
 
@@ -123,6 +141,7 @@ int main (int argc, char *argv[]) {
 		#else
 			for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
 				gseidel(fine, u_fine, b);
+				//jacobi(fine,u_fine,b);
 			}
 		#endif
 

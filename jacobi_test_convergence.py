@@ -107,6 +107,46 @@ def mg_iter(phi, b, nu, toll, lvls):
     return phi
 
 
+def debug(N, u, f):
+    h = 1 / N
+    x = np.linspace(0, 1.0, N + 1)
+    y = np.linspace(0, 1.0, N + 1)
+    X, Y = np.meshgrid(x, y)
+
+    # w is the full solution
+    phi = np.zeros((N + 1, N + 1))
+
+    # fix the boundary conditions
+    phi[:, 0] = u(x, y[0])    # left Boundary
+    phi[:, -1] = u(x, y[-1])  # Right Boundary
+    phi[0, :] = u(x[0], y)    # Lower Boundary
+    phi[-1, :] = u(x[-1], y)  # Upper Boundary
+
+    phi0 = np.copy(phi)
+
+    print("Building RHS")
+    # RHS
+    b = f(X, Y) * h * h
+
+
+    r = residual(phi, b)
+
+    print(r)
+    print()
+
+
+    projected = restrict(r)
+    print(projected)
+    print()
+
+
+    interpolated = prolong(projected)
+    print(interpolated)
+    print()
+
+
+
+
 def solve(N, u, f):
     h = 1 / N
     x = np.linspace(0, 1.0, N + 1)
@@ -174,4 +214,5 @@ if __name__ == "__main__":
     def f(x, y):
         return -(x * x * x + y * y * y)
 
-    convergenge([32], u, f)
+    #convergenge([32], u, f)
+    debug(4, u, f)

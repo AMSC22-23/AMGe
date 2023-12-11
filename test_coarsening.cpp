@@ -62,7 +62,7 @@ int main (int argc, char *argv[]) {
 	residual(fine,u_fine, b, r);
 	fine.print_vector(r, "residual");
 
-	fine.project_on_coarse(fine, r, r_coarse);
+	fine.project_on_coarse(coarse, r, r_coarse);
 	coarse.print_vector(r_coarse, "residual_coarse");
 
 	fine.interpolate_on_fine(coarse, r_interpolated, r_coarse);

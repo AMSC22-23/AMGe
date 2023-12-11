@@ -1,192 +1,121 @@
 #include <iostream>
 #include <cmath>
-#include <iterator>
 #include <vector>
-#include "LatticeMesh.hpp"
+#include "Lattice.hpp"
 #include "Utils.hpp"
 
 
 using namespace std;
 
 
-
-/*
-double g(double x,double y){  //function boundary conditions
-	return ((x*x*x)/6.0)+((y*y*y)/6.0);
-}
-
-
-double f(double x,double y){  //main function
-	return -x-y;
-}
-*/
-
-
-double g(double x,double y){  //function boundary conditions
-	return x*x + y*y;
-}
-
-
-double f(double x,double y){  //main function
-	return -4.0;
-}
-
-
-double compute_error(const std::vector<double> &exact_solution, const std::vector<double> &computed_solution, int dim){
-	std::vector<double> error(dim);
-	for(Index i = 0; i < dim; i++){
-		error[i]=exact_solution[i]-computed_solution[i];
-	}
-	return norm(error);
-}
-
-
-double compute_residual(LatticeMesh mesh, vector<double> &U, vector<double> &residual, vector<double> &b){    //compute residual vecotr
-	/*
-	double hx_square= mesh.hx*mesh.hx;
-	double hy_square= mesh.hy*mesh.hy;
-	double factor =-2.0*(hx_square+hy_square);
-	
-
-	// ipotesi: non stiamo inizializzando bene il residuo
-	for (auto &x : residual) {
-		x = 0.0;
-	}
-
-
-	for(Index i : mesh.get_inner_nodes()){
-		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-		
-		
-		residual[i] = (
-						hx_square*hy_square*b[i]
-					   +((U[nord]+U[sud])*hy_square)
-					   +((U[ovest]+U[est])*hx_square)
-					   +factor*U[i]
-					   );
-	}
-	*/
-
-	for (auto &x : residual) {
-		x = 0.0;
-	}
-
+void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {
 	for (Index i : mesh.get_inner_nodes()) {
 		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
 
-		residual[i] = (((mesh.hx * mesh.hx) * b[i] + U[nord] + U[sud] + U[est] + U[ovest]) / 4.0) - U[i];
+		r[i] = 4.0 * u[i] - u[nord] - u[sud] - u[ovest] - u[est] - b[i];
 	}
-
-
-	return norm(residual);
 }
 
 
-void jacobi(LatticeMesh &mesh, std::vector<double> &U, std::vector<double> &Old, std::vector<double> &b){
-	const double hx_square = mesh.hx * mesh.hx;
-	const double hy_square = mesh.hy * mesh.hy;
-	const double den       = 2.0 * ((1.0 / hx_square) + (1.0 / hy_square));
-
-
+void gseidel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b) {
 	for (Index i : mesh.get_inner_nodes()) {
 		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
 
-
-		U[i] = (
-			  b[i]
-			+ ((Old[ovest] + Old[est]) / hx_square)
-			+ ((Old[nord]  + Old[sud]) / hy_square)
-		) / den;
+		u[i] = 0.25 * (b[i] + u[nord] + u[sud] + u[ovest] + u[est]);
 	}
 }
 
 
-void gauss_seidel(LatticeMesh mesh, std::vector<double> &U, std::vector<double> &b){  //1 cycle of Gauss Siedel
-	const double hx_square = mesh.hx * mesh.hx;
-	const double hy_square = mesh.hy * mesh.hy;
-	const double den       = 2.0 * ((1.0 / hx_square) + (1.0 / hy_square));
+void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double x, double y)) {
+	mesh.evaluate_function(u, g);
+
+	for (Index i : mesh.get_inner_nodes()) {
+		u[i] = 0.0;
+	}
+}
+
+void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vector<double> &b){
+	std::vector<double> r_fine(fine.numel());
+	std::vector<double> e_fine(fine.numel());
+	std::vector<double> r_coarse(coarse.numel());
+	std::vector<double> e_coarse(coarse.numel());
+
+	for (int pre = 0; pre < 10; ++pre) {
+			gseidel(fine, u, b);
+		}
 	
+		residual(fine, u, b, r_fine);
 
-	for(Index i : mesh.get_inner_nodes()){
-		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-		
-		
-		U[i] = (
-			  b[i]
-			+ ((U[ovest] + U[est]) / hx_square)
-			+ ((U[nord]  + U[sud]) / hy_square)
-		) / den;
-	}
-
-}
+		fine.project_on_coarse(coarse, r_fine, r_coarse);
 
 
-int main(int argc, char *argv[]){
-	const int Nx = 257;
-	const int Ny = 257;
-
-
-	LatticeMesh fine(0.0, 0.0, 0.1, 0.1, Nx,Ny);
-	LatticeMesh coarse = fine.build_coarse();
-
-
-	std::vector<double> U_exact(Nx*Ny);
-
-
-	std::vector<double> U_fine(Nx*Ny);
-	std::vector<double> residual_fine(Nx*Ny);
-	std::vector<double> err_fine(Nx*Ny);
-	std::vector<double> err_coarse((Nx / 2 + 1) * (Ny / 2 + 1));
-	std::vector<double> residual_coarse((Nx / 2 + 1) * (Ny / 2 + 1));
-	std::vector<double> F(Nx*Ny);
-
-
-	fine.evaluate_function(U_exact, g);
-	fine.evaluate_function(U_fine, g);
-	fine.evaluate_function(F, f);
-
-
-	for (Index i : fine.get_inner_nodes()) {
-		U_fine[i] = 0.0;
-	}
-
-
-	/* iniziamo con il multigrid */
-	for (int it = 0; it < 500; ++it) {
-		gauss_seidel(fine, U_fine, F);
-		gauss_seidel(fine, U_fine, F);
-		gauss_seidel(fine, U_fine, F);
-
-
-		compute_residual(fine, U_fine, residual_fine, F);
-		fine.project_on_coarse(residual_fine, residual_coarse);
-		for (auto &x : err_coarse) {
+		for (auto &x : e_coarse) {
 			x = 0.0;
 		}
 
-
-		for (int it_on_coarse = 0; it_on_coarse < 10; ++it_on_coarse) {
-			gauss_seidel(coarse, err_coarse, residual_coarse);
+		for (int coarse_it = 0; coarse_it < 300; ++coarse_it) {
+			gseidel(coarse, e_coarse, r_coarse);
 		}
 
-		fine.interpolate_on_fine(coarse, err_fine, err_coarse);
-
+		fine.interpolate_on_fine(coarse, e_fine, e_coarse);
 
 		for (Index i : fine.get_inner_nodes()) {
-			U_fine[i] += err_fine[i];
+			u[i] -= e_fine[i];
 		}
 
+		for (int post = 0; post < 10; ++post) {
+			gseidel(fine, u, b);
+		}
+}
 
 
+double g(double x,double y) {
+	return x * x * x * x * x / 20.0 + y * y * y * y * y / 20.0;
+}
 
-		gauss_seidel(fine, U_fine, F);
-		gauss_seidel(fine, U_fine, F);
-		gauss_seidel(fine, U_fine, F);
-		std::cout<<it<<std::endl;
+
+double f(double x,double y) {
+	return -(x * x * x + y * y * y);
+}
+
+
+int main (int argc, char *argv[]) {
+	const int N = 129;
+	
+	
+	Lattice fine(0.0, 0.0, 1.0, 1.0, N);
+	Lattice coarse = fine.build_coarse();
+
+
+	std::vector<double> u_fine(fine.numel());
+	std::vector<double> b(fine.numel());
+	std::vector<double> r_fine(fine.numel());
+	std::vector<double> e_fine(fine.numel());
+
+
+	std::vector<double> r_coarse(coarse.numel());
+	std::vector<double> e_coarse(coarse.numel());
+
+
+	set_initial_guess(fine, u_fine, g);
+	fine.evaluate_forcing_term(b, f);
+	
+	for (Index i : fine.get_inner_nodes()) {
+		u_fine[i] = 0.0;
 	}
 
 
-	std::cout << compute_error(U_fine, U_exact, Nx*Ny) << std::endl;
+
+	for (int i = 0; i < 1000; ++i) {
+		//two_level(fine, coarse, u_fine, b);
+		for (int pre = 0; pre < 20; ++pre) {
+			gseidel(fine, u_fine, b);
+		}
+
+		residual(fine, u_fine, b, r_fine);
+		std::cout <<i<<" "<< norm(r_fine) << std::endl;
+	}
+
 
 
 	return 0;

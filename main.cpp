@@ -7,82 +7,6 @@
 
 using namespace std;
 
-/*
-
-double g(double x,double y){  //function boundary conditions
-	return 1.0;
-}
-
-
-double f(double x,double y){  //main function
-	return 1.0;
-}
-
-
-
-
-void gauss_seidel(LatticeMesh mesh, vector<double> &U, vector<double> &b){  //1 cycle of Gauss Siedel
-	const double hx_square = mesh.hx * mesh.hx;
-	const double hy_square = mesh.hy * mesh.hy;
-	const double den       = 2.0 * ((1.0 / hx_square) + (1.0 / hy_square));
-	
-
-	for(Index i : mesh.get_inner_nodes()){
-		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-		
-		
-		U[i] = (
-			  b[i]
-			+ ((U[ovest] + U[est]) / hx_square)
-			+ ((U[nord]  + U[sud]) / hy_square)
-		) / den;
-	}
-
-}
-
-
-double compute_residual(LatticeMesh mesh, vector<double> &U, vector<double> &residual, vector<double> &b){    //compute residual vecotr
-	double hx_square= mesh.hx*mesh.hx;
-	double hy_square= mesh.hy*mesh.hy;
-	double factor =-2.0*(hx_square+hy_square);
-	
-
-	for(Index i : mesh.get_inner_nodes()){
-		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-		
-		
-		residual[i] = (
-						hx_square*hy_square*b[i]
-					   +((U[nord]+U[sud])*hy_square)
-					   +((U[ovest]+U[est])*hx_square)
-					   +factor*U[i]
-					   );
-	}
-
-	return norm(residual);
-}
-
-
-
-void jacobi(LatticeMesh &mesh, std::vector<double> &U, std::vector<double> &Old, std::vector<double> &b){
-	const double hx_square = mesh.hx * mesh.hx;
-	const double hy_square = mesh.hy * mesh.hy;
-	const double den       = 2.0 * ((1.0 / hx_square) + (1.0 / hy_square));
-
-
-	for (Index i : mesh.get_inner_nodes()) {
-		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-
-
-		U[i] = (
-			  b[i]
-			+ ((Old[ovest] + Old[est]) / hx_square)
-			+ ((Old[nord]  + Old[sud]) / hy_square)
-		) / den;
-	}
-}
-*/
-
 
 void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {
 	for (Index i : mesh.get_inner_nodes()) {
@@ -110,6 +34,40 @@ void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double
 	}
 }
 
+void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vector<double> &b){
+	std::vector<double> r_fine(fine.numel());
+	std::vector<double> e_fine(fine.numel());
+	std::vector<double> r_coarse(coarse.numel());
+	std::vector<double> e_coarse(coarse.numel());
+
+	for (int pre = 0; pre < 10; ++pre) {
+			gseidel(fine, u, b);
+		}
+	
+		residual(fine, u, b, r_fine);
+
+		fine.project_on_coarse(coarse, r_fine, r_coarse);
+
+
+		for (auto &x : e_coarse) {
+			x = 0.0;
+		}
+
+		for (int coarse_it = 0; coarse_it < 300; ++coarse_it) {
+			gseidel(coarse, e_coarse, r_coarse);
+		}
+
+		fine.interpolate_on_fine(coarse, e_fine, e_coarse);
+
+		for (Index i : fine.get_inner_nodes()) {
+			u[i] -= e_fine[i];
+		}
+
+		for (int post = 0; post < 10; ++post) {
+			gseidel(fine, u, b);
+		}
+}
+
 
 double g(double x,double y) {
 	return x * x * x * x * x / 20.0 + y * y * y * y * y / 20.0;
@@ -122,57 +80,38 @@ double f(double x,double y) {
 
 
 int main (int argc, char *argv[]) {
-	Lattice mesh(0.0, 0.0, 1.0, 1.0, 65);
+	const int N = 65;
+	
+	
+	Lattice fine(0.0, 0.0, 1.0, 1.0, N);
+	Lattice coarse = fine.build_coarse();
 
 
-	std::vector<double> u(mesh.numel());
-	std::vector<double> b(mesh.numel());
-	std::vector<double> r(mesh.numel());
+	std::vector<double> u_fine(fine.numel());
+	std::vector<double> b(fine.numel());
+	std::vector<double> r_fine(fine.numel());
+	std::vector<double> e_fine(fine.numel());
 
 
-	set_initial_guess(mesh, u, g);
-	mesh.evaluate_forcing_term(b, f);
+	std::vector<double> r_coarse(coarse.numel());
+	std::vector<double> e_coarse(coarse.numel());
 
 
-	for (int i = 0; i < 10000; ++i) {
-		gseidel(mesh, u, b);
-
-		residual(mesh, u, b, r);
-		std::cout << norm(r) << std::endl;
-	}
-
-	/*
-	const int Nx = 50;
-	const int Ny = 50;
-
-
-	LatticeMesh mesh(-1.0, 0.0, 2.0, 2.0, Nx,Ny);
-	vector<double> Old(Nx*Ny);
-	vector<double> U(Nx*Ny);
-	vector<double> F(Nx*Ny);
-
-
-	mesh.evaluate_function(U, g);
-	mesh.evaluate_function(Old, g);
-	mesh.evaluate_function(F, f);
-
-	vector<double> residual(Nx*Ny);
-	float residual_norm=100;
-	int count=0;
-
-
-	for (int it = 0; it < 1000; ++it) {
-		gauss_seidel(mesh, U, F);
-		//jacobi(mesh, U, Old, F);
-		compute_residual(mesh,U,residual,F);
-		count++;
-		//std::swap(U, Old);
-		residual_norm=norm(residual);
+	set_initial_guess(fine, u_fine, g);
+	fine.evaluate_forcing_term(b, f);
+	
+	for (Index i : fine.get_inner_nodes()) {
+		u_fine[i] = 0.0;
 	}
 
 
-	export_to_matlab("U", U);
-	*/
+
+	for (int i = 0; i < 1000; ++i) {
+		two_level(fine, coarse, u_fine, b);
+		residual(fine, u_fine, b, r_fine);
+		std::cout << norm(r_fine) << std::endl;
+	}
+
 
 
 	return 0;

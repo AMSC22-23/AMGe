@@ -2,13 +2,20 @@
 #define __MULTIGRID_HPP__
 
 
-#include <array>
+#include <vector>
 
 
-template <unsigned int pre_smoothing_steps, unsigned int post_smoothing_steps, unsigned int levels>
 class Multigrid {
 public:
-	Multigrid() {
+	Multigrid(
+		  unsigned int pre_smoothing_steps_
+		, unsigned int post_smoothing_steps_
+		, unsigned int levels_
+	) :
+		  pre_smoothing_steps(pre_smoothing_steps_)
+		, post_smoothing_steps(post_smoothing_steps_)
+		, levels(levels_)
+	{
 		// qui ci vanno un po' di allocazioni
 	}
 
@@ -21,9 +28,13 @@ public:
 	std::vector<double> get_solution();
 
 private:
-	std::array<std::vector<double>, levels> u;
-	std::array<std::vector<double>, levels> err;
-	std::array<std::vector<double>, levels-1> res;
+	const unsigned int pre_smoothing_steps;
+	const unsigned int post_smoothing_steps;
+	const unsigned int levels;
+
+	std::vector<std::vector<double>> u;
+	std::vector<std::vector<double>> err;
+	std::vector<std::vector<double>> res;
 };
 
 #endif

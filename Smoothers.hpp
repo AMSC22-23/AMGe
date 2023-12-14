@@ -24,13 +24,8 @@ void gseidel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b
 }
 
 
-void jacobi(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b) {
+void jacobi(Lattice &mesh, std::vector<double> &u, std::vector<double> old, std::vector<double> &b) {
 	// occhio al bordo
-	std::vector<double> old(mesh.numel());
-	for (int i = 0; i < mesh.numel(); ++i) {
-		old[i] = u[i];
-	}
-
 	for (Index i : mesh.get_inner_nodes()) {
 		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
 

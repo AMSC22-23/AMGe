@@ -30,12 +30,19 @@ void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double
 void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vector<double> &b){
 	std::vector<double> r_fine(fine.numel());
 	std::vector<double> e_fine(fine.numel());
+	//std::vector<double> u_old(fine.numel());
 	std::vector<double> r_coarse(coarse.numel());
 	std::vector<double> e_coarse(coarse.numel());
+	//std::vector<double> e_coarse_old(coarse.numel());
+
+
+	//set_initial_guess(fine, u_old, g);
+
 
 	for (int pre = 0; pre < PRE_SMOOTHING_STEPS; ++pre) {
 			gseidel(fine, u, b);
-			//jacobi(fine, u, b);
+			//jacobi(fine, u, u_old b);
+			//std::swap(u_fine, u_old);
 		}
 	
 		residual(fine, u, b, r_fine);
@@ -46,10 +53,15 @@ void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vect
 		for (auto &x : e_coarse) {
 			x = 0.0;
 		}
+		
+		/*for (auto &x : e_coarse_old) {
+			x = 0.0;
+		}*/
 
 		for (int coarse_it = 0; coarse_it < 300; ++coarse_it) {
 			gseidel(coarse, e_coarse, r_coarse);
-			//jacobi(coarse, e_coarse, r_coarse);
+			//jacobi(coarse, e_coarse, e_coarse_old, r_coarse);
+			//std::swap(e_coarse, e_coarse_old);
 		}
 
 		fine.interpolate_on_fine(coarse, e_fine, e_coarse);
@@ -60,7 +72,8 @@ void two_level(Lattice &fine, Lattice &coarse, std::vector<double> &u, std::vect
 
 		for (int post = 0; post < POST_SMOOTHING_STEPS; ++post) {
 			gseidel(fine, u, b);
-			//jacobi(fine, u, b);
+			//jacobi(fine, u, u_old, b);
+			//std::swap(u_fine, u_old);
 		}
 }
 
@@ -83,6 +96,7 @@ int main (int argc, char *argv[]) {
 	Lattice coarse = fine.build_coarse();
 
 
+	std::vector<double> u_old(fine.numel());
 	std::vector<double> u_fine(fine.numel());
 	std::vector<double> b(fine.numel());
 	std::vector<double> r_fine(fine.numel());
@@ -93,6 +107,7 @@ int main (int argc, char *argv[]) {
 	std::vector<double> e_coarse(coarse.numel());
 
 
+	set_initial_guess(fine, u_old, g);
 	set_initial_guess(fine, u_fine, g);
 	fine.evaluate_forcing_term(b, f);
 	
@@ -105,7 +120,8 @@ int main (int argc, char *argv[]) {
 		#else
 			for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
 				gseidel(fine, u_fine, b);
-				//jacobi(fine,u_fine,b);
+				//jacobi(fine, u_fine, u_old, b);
+				//std::swap(u_fine, u_old);
 			}
 		#endif
 

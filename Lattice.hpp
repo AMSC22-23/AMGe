@@ -88,6 +88,7 @@ public:
 		}
 
 
+		// @TODO: aggiornare alla nostra codebase (cardinal e diagonal neighbours)
 		for (int i = 2; i < (N-1); i = i + 2) {
 			for (int j = 2; j < (N-1); j = j + 2) {
 				int ii = i / 2;
@@ -131,6 +132,8 @@ public:
 		for (int i = 1; i < N-1; ++i) {
 			for (int j = 1; j < N-1; ++j) {
 
+				// @TODO: refactor, proprietà distributiva, raccogliere i termini
+
 				if (i % 2 == 0 and j % 2 == 0) {
 					u_fine[index(i,j)] = u_coarse[coarse.index(i/2, j/2)];
 				}
@@ -173,6 +176,12 @@ public:
 				b[index(i,j)] = h * h * f(x,y);
 			}
 		}
+	}
+
+
+	// @TODO: complete this function
+	void evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y)) {
+
 	}
 
 

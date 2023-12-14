@@ -102,7 +102,7 @@ public:
 	}
 
 
-	void interpolate_on_fine(Lattice &coarse, std::vector<double> &u, const std::vector<double> &v) {
+	/*void interpolate_on_fine(Lattice &coarse, std::vector<double> &u, const std::vector<double> &v) {
 		for (auto &x : u) {
 			x = 0.0;
 		}
@@ -120,6 +120,36 @@ public:
 					u[index(i,j)] =
 						0.25 * (v[coarse.index(ii+1,jj)] + v[coarse.index(ii,jj+1)] + v[coarse.index(ii-1,jj)] + v[coarse.index(ii,jj-1)])
 						+ 0.125 * (v[coarse.index(ii+1,jj+1)] + v[coarse.index(ii-1,jj+1)] + v[coarse.index(ii-1,jj-1)] + v[coarse.index(ii+1,jj-1)]);
+				}
+			}
+		}
+	}*/
+
+
+	void interpolate_on_fine(Lattice &coarse, std::vector<double> &u_fine, const std::vector<double> &u_coarse) {
+		// devo iterare solo sui nodi interni
+		for (int i = 1; i < N-1; ++i) {
+			for (int j = 1; j < N-1; ++j) {
+
+				if (i % 2 == 0 and j % 2 == 0) {
+					u_fine[index(i,j)] = u_coarse[coarse.index(i/2, j/2)];
+				}
+				else if (i % 2 == 1 and j % 2 == 0) {
+					u_fine[index(i,j)] =
+						  0.5 * u_coarse[coarse.index(    i/2, j/2)]
+						+ 0.5 * u_coarse[coarse.index(1 + i/2, j/2)];
+				}
+				else if(i % 2 == 0 and j % 2 == 1) {
+					u_fine[index(i,j)] =
+						  0.5 * u_coarse[coarse.index(i/2,     j/2)]
+						+ 0.5 * u_coarse[coarse.index(i/2, 1 + j/2)];
+				}
+				else {
+					u_fine[index(i,j)] =
+						  0.25 * u_coarse[coarse.index(    i/2,     j/2)]
+						+ 0.25 * u_coarse[coarse.index(    i/2, 1 + j/2)]
+						+ 0.25 * u_coarse[coarse.index(1 + i/2,     j/2)]
+						+ 0.25 * u_coarse[coarse.index(1 + i/2, 1 + j/2)];
 				}
 			}
 		}

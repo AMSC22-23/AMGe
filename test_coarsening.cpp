@@ -3,18 +3,12 @@
 #include <vector>
 #include "Lattice.hpp"
 #include "Utils.hpp"
+#include "Smoothers.hpp"
 
 
 using namespace std;
 
 
-void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {
-	for (Index i : mesh.get_inner_nodes()) {
-		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-
-		r[i] = 4.0 * u[i] - u[nord] - u[sud] - u[ovest] - u[est] - b[i];
-	}
-}
 
 
 void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double x, double y)) {

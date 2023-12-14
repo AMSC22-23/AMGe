@@ -2,8 +2,9 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include "LatticeMesh.hpp"
+#include "Lattice.hpp"
 #include "Utils.hpp"
+#include "Smoothers.hpp"
 
 
 using namespace std;
@@ -19,29 +20,14 @@ double compute_error(const std::vector<double> &exact_solution, const std::vecto
 	//return *std::max_element(error.begin(), error.end());
 }
 
-
-double compute_residual(LatticeMesh mesh, vector<double> &u, vector<double> &r, vector<double> &b){    //compute residual vecotr
-	const double h = mesh.hx;
-
-	for (Index i : mesh.get_inner_nodes()) {
-		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-
-		r[i] = h*h*b[i] + u[nord] + u[sud] + u[ovest] + u[est] - 4.0 * u[i];
-	}
-
-	return norm(r);
-}
-
-
-void gauss_seidel(LatticeMesh &mesh, std::vector<double> &u, std::vector<double> &b) {
-	const double h = mesh.hx;
+void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double x, double y)) {
+	mesh.evaluate_function(u, g);
 
 	for (Index i : mesh.get_inner_nodes()) {
-		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
-
-		u[i] = 0.25 * (h*h*b[i] + u[nord] + u[sud] + u[ovest] + u[est]);
+		u[i] = 0.0;
 	}
 }
+
 
 
 double g(double x,double y){
@@ -56,29 +42,25 @@ double f(double x,double y){
 int main(int argc, char *argv[]){
 	for (int lvl = 0; lvl < 8; ++lvl) {
 		int N = (2 << lvl) + 1;
-		LatticeMesh mesh(0.0, 0.0, 1.0, 1.0, N, N);
+		Lattice mesh(0.0, 0.0, 1.0, 1.0, N);
 
-		std::vector<double> U_exact(N*N);
-		std::vector<double> residual(N*N);
-		std::vector<double> U_computed(N*N);
-		std::vector<double> F(N*N);
+		std::vector<double> U_exact(mesh.numel());
+		std::vector<double> r(mesh.numel());
+		std::vector<double> U_computed(mesh.numel());
+		std::vector<double> F(mesh.numel());
 
 
 		mesh.evaluate_function(U_exact, g);
-		mesh.evaluate_function(U_computed, g);
-		mesh.evaluate_function(F, f);
-
-
-		for (Index i : mesh.get_inner_nodes()) {
-			U_computed[i] = 0.0;
-		}
+		set_initial_guess(mesh, U_computed, g);
+		mesh.evaluate_forcing_term(F, f);
 
 
 		int it = 0;
 		do {
-			gauss_seidel(mesh, U_computed, F);
+			gseidel(mesh, U_computed, F);
 			++it;
-		} while (compute_residual(mesh, U_computed, residual, F) > 1e-14);
+			residual(mesh, U_computed, F, r);
+		} while (norm(r) > 1e-8);
 
 
 		// here error should be diminish with N but it is not

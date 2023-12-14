@@ -3,6 +3,11 @@ OPT=-O2
 
 
 all:
+	g++ -o mg_constructor test_multigrid_class.cpp $(CFLAGS)
+	./mg_constructor
+
+
+test:
 	g++ -o multigrid -DMULTIGRID test_multigrid.cpp $(CFLAGS) $(OPT)
 	./multigrid > twolvl.txt
 	g++ -o multigrid test_multigrid.cpp $(CFLAGS) $(OPT)
@@ -16,3 +21,4 @@ coarse:
 convergence:
 	g++ -o convergence test_convergence.cpp $(CFLAGS)
 	./convergence
+

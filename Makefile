@@ -22,3 +22,7 @@ convergence:
 	g++ -o convergence test_convergence.cpp $(CFLAGS)
 	./convergence
 
+parallelism:
+    g++ -fopenmp -o parallel test_parallelism.cpp -O2
+	./parallel
+

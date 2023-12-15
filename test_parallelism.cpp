@@ -4,6 +4,7 @@
 #include "Lattice.hpp"
 #include "Utils.hpp"
 #include "Smoothers.hpp"
+#include <chrono>
 
 
 using namespace std;
@@ -51,62 +52,176 @@ int main (int argc, char *argv[]) {
 		*
 		* 
 	*/
-	const int N = 257;
+	
+
+	std::chrono::high_resolution_clock::time_point t0;
+	std::chrono::high_resolution_clock::time_point t1;
+	std::int64_t medium_time_elapsed;
+	std::int64_t time_elapsed;
 
 
-	Lattice fine(0.0, 0.0, 1.0, 1.0, N);
+
+	std::vector<int> mesh_size;
+
+	mesh_size.push_back(33);
+	mesh_size.push_back(65);
+	mesh_size.push_back(129);
+	mesh_size.push_back(257);
 
 
-	std::vector<double> u_old(fine.numel());
-	std::vector<double> u(fine.numel());
-	std::vector<double> b(fine.numel());
-	std::vector<double> r(fine.numel());
 
 
-	set_initial_guess(fine, u_old, g);
-	set_initial_guess(fine, u, g);
-	fine.evaluate_forcing_term(b, f);
+	for(int d : mesh_size){
+			Lattice fine(0.0, 0.0, 1.0, 1.0, d);
 
 
-	time_t start = time(nullptr);
+			std::vector<double> u_old(fine.numel());
+			std::vector<double> u(fine.numel());
+			std::vector<double> b(fine.numel());
+			std::vector<double> r(fine.numel());
 
-	for (int i = 0; i < 10000; ++i) {
-		for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
-			jacobi(fine, u, u_old, b);
-			std::swap(u, u_old);
-		}
-		residual(fine, u, b, r);
+
+			for(int n_iterations = 100 ; n_iterations < 10001; n_iterations *= 10){
+					
+					set_initial_guess(fine, u_old, g);
+					set_initial_guess(fine, u, g);
+					fine.evaluate_forcing_term(b, f);
+
+
+					medium_time_elapsed = 0;
+
+
+					for (int i = 0; i < n_iterations; ++i) {
+						t0 = std::chrono::high_resolution_clock::now();
+					
+						for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
+								jacobi(fine, u, u_old, b);
+								std::swap(u, u_old);
+						}
+						
+						t1 = std::chrono::high_resolution_clock::now();
+						time_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+						medium_time_elapsed += time_elapsed;
+					}
+
+
+					medium_time_elapsed = medium_time_elapsed / n_iterations;
+					std::cout << "Jacobi seriale con mesh di size: " << d << " in " << n_iterations << " iterazioni termina in " << medium_time_elapsed << " microsecondi.\n";
+
+
+
+
+					set_initial_guess(fine, u_old, g);
+					set_initial_guess(fine, u, g);
+					fine.evaluate_forcing_term(b, f);
+
+					medium_time_elapsed = 0;
+
+
+					for (int i = 0; i < n_iterations; ++i) {
+						t0 = std::chrono::high_resolution_clock::now();
+						
+						for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
+								jacobi_parallel(fine, u, u_old, b);
+								std::swap(u, u_old);
+						}
+
+						t1 = std::chrono::high_resolution_clock::now();
+						time_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+						medium_time_elapsed += time_elapsed;
+					}
+
+
+					medium_time_elapsed = medium_time_elapsed / n_iterations;
+					std::cout << "Jacobi parallelo con mesh di size: " << d << " in " << n_iterations << " iterazioni termina in " << medium_time_elapsed << " microsecondi.\n";
+					std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl; 
+			}
+
+
+			std::cout << " " << std::endl;
+			std::cout << " " << std::endl;
 	}
 
 
-	time_t end = time(nullptr);
-	double time_elapsed = difftime(end, start);
-	std::cout << "Il programma ha impiegato " << time_elapsed << " secondi.\n";
+	std::cout << " " << std::endl;
+	std::cout << " " << std::endl;
+	std::cout << "----------------------------------------------------------------------------------------------------------------" << std::endl;
+	std::cout << "--------------------------------------------------------REVERSE-------------------------------------------------" << std::endl;
+	std::cout << "----------------------------------------------------------------------------------------------------------------" << std::endl;
+	std::cout << " " << std::endl;
+	std::cout << " " << std::endl;
+
+
+	for(int d : mesh_size){
+			Lattice fine(0.0, 0.0, 1.0, 1.0, d);
+
+
+			std::vector<double> u_old(fine.numel());
+			std::vector<double> u(fine.numel());
+			std::vector<double> b(fine.numel());
+			std::vector<double> r(fine.numel());
+
+
+			for(int n_iterations = 100 ; n_iterations < 10001; n_iterations *= 10){
+					
+					set_initial_guess(fine, u_old, g);
+					set_initial_guess(fine, u, g);
+					fine.evaluate_forcing_term(b, f);
+
+
+					medium_time_elapsed = 0;
+
+
+					for (int i = 0; i < n_iterations; ++i) {
+						t0 = std::chrono::high_resolution_clock::now();
+					
+						for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
+								jacobi_parallel(fine, u, u_old, b);
+								std::swap(u, u_old);
+						}
+						
+						t1 = std::chrono::high_resolution_clock::now();
+						time_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+						medium_time_elapsed += time_elapsed;
+					}
+
+
+					medium_time_elapsed = medium_time_elapsed / n_iterations;
+					std::cout << "Jacobi parallelo con mesh di size: " << d << " in " << n_iterations << " iterazioni termina in " << medium_time_elapsed << " microsecondi.\n";
 
 
 
 
+					set_initial_guess(fine, u_old, g);
+					set_initial_guess(fine, u, g);
+					fine.evaluate_forcing_term(b, f);
 
-	set_initial_guess(fine, u_old, g);
-	set_initial_guess(fine, u, g);
-	fine.evaluate_forcing_term(b, f);
+					medium_time_elapsed = 0;
 
 
-	time_t start2 = time(nullptr);
+					for (int i = 0; i < n_iterations; ++i) {
+						t0 = std::chrono::high_resolution_clock::now();
+						
+						for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
+								jacobi(fine, u, u_old, b);
+								std::swap(u, u_old);
+						}
 
-	for (int i = 0; i < 10000; ++i) {
-		for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
-			jacobi_parallel(fine, u, u_old, b);
-			std::swap(u, u_old);
-		}
-		residual(fine, u, b, r);
+						t1 = std::chrono::high_resolution_clock::now();
+						time_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+						medium_time_elapsed += time_elapsed;
+					}
+
+
+					medium_time_elapsed = medium_time_elapsed / n_iterations;
+					std::cout << "Jacobi seriale con mesh di size: " << d << " in " << n_iterations << " iterazioni termina in " << medium_time_elapsed << " microsecondi.\n";
+					std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl; 
+			}
+
+
+			std::cout << " " << std::endl;
+			std::cout << " " << std::endl;
 	}
-
-
-	time_t end2 = time(nullptr);
-	time_elapsed = difftime(end2, start2);
-	std::cout << "Il programma parallelo ha impiegato " << time_elapsed << " secondi.\n";
-
 
 
 	return 0;

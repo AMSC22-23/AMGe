@@ -41,7 +41,7 @@ public:
 		}
 
 
-		minimal = !is_2nplusone(N);
+		minimal = !is_2nplusone(N) || width != height;
 	}
 
 

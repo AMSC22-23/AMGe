@@ -6,20 +6,6 @@
 #include "Smoothers.hpp"
 
 
-using namespace std;
-
-
-
-
-void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double x, double y)) {
-	mesh.evaluate_function(u, g);
-
-	for (Index i : mesh.get_inner_nodes()) {
-		u[i] = 0.0;
-	}
-}
-
-
 double g(double x,double y) {
 	return x * x * x * x * x / 20.0 + y * y * y * y * y / 20.0;
 }
@@ -39,21 +25,20 @@ int main (int argc, char *argv[]) {
 	Lattice coarse = fine.build_coarse();
 
 
-	std::vector<double> u_fine(fine.numel());
-	std::vector<double> r(fine.numel());
+	std::vector<double> u(fine.numel());
 	std::vector<double> b(fine.numel());
+	std::vector<double> r(fine.numel());
+
+
 	std::vector<double> r_interpolated(fine.numel());
 	std::vector<double> r_coarse(coarse.numel());
 
 
-	set_initial_guess(fine, u_fine, g);
+	fine.evaluate_boundary_conditions(u, g);
 	fine.evaluate_forcing_term(b, f);
-	for (Index i : fine.get_inner_nodes()) {
-		u_fine[i] = 0.0;
-	}
 
 
-	residual(fine,u_fine, b, r);
+	residual(fine, u, b, r);
 	fine.print_vector(r, "residual");
 
 	fine.project_on_coarse(coarse, r, r_coarse);

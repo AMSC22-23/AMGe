@@ -136,7 +136,7 @@ public:
 					u_fine[index(i,j)] =
 						0.5 * (
 							  u_coarse[coarse.index(i/2,     j/2)]
-							+ u_coarse[coarse.index(i/2, 1 + j/2)];
+							+ u_coarse[coarse.index(i/2, 1 + j/2)]
 						);
 				}
 				else {
@@ -174,7 +174,7 @@ public:
 
 
 	void evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y)) {
-		for(Index i : boundary_nodes){
+		for (Index i : boundary_nodes) {
 			const auto [j, k] = inverse_index(i);
 			const double x = x_corner + j * h * width;
 			const double y = y_corner + k * h * height;
@@ -183,7 +183,9 @@ public:
 		}
 
 
-		// dovremmo mettere tutti i nodi interni a zero?
+		for (Index i : inner_nodes) {
+			u[i] = 0.0;
+		}
 	}
 
 

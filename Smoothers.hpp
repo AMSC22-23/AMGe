@@ -1,10 +1,9 @@
 #ifndef __SMOOTHERS_HPP__
 #define __SMOOTHERS_HPP__
 
-#include <omp.h>
+
 #include <vector>
 #include "Lattice.hpp"
-#include <ctime>
 
 
 void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {
@@ -25,7 +24,7 @@ void gseidel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b
 }
 
 
-void jacobi_parallel(Lattice &mesh, std::vector<double> &u, std::vector<double> old, std::vector<double> &b) {
+void jacobi_parallel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &old, const std::vector<double> &b) {
 	// occhio al bordo
 	#pragma omp parallel for
 
@@ -38,7 +37,7 @@ void jacobi_parallel(Lattice &mesh, std::vector<double> &u, std::vector<double> 
 }
 
 
-void jacobi(Lattice &mesh, std::vector<double> &u, std::vector<double> old, std::vector<double> &b) {
+void jacobi(Lattice &mesh, std::vector<double> &u, const std::vector<double> &old, const std::vector<double> &b) {
 	// occhio al bordo
 	
 	for (Index i : mesh.get_inner_nodes()) {

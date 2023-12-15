@@ -1,6 +1,9 @@
 #ifndef __UTILS_HPP__
 #define __UTILS_HPP__
+
+
 #include <bitset>
+#include <cmath>
 
 
 double norm(std::vector<double> &v){

@@ -18,6 +18,14 @@ public:
 		y_corner = y_corner_;
 		width    = width_;
 		height   = height_;
+
+
+		if (width != height) {
+			fprintf(stderr, "Mesh has to be square\n");
+			exit(EXIT_FAILURE);
+		}
+
+
 		N        = N_;
 		h        = width / (N-1);
 
@@ -33,9 +41,7 @@ public:
 		}
 
 
-		// TODO: controlli sulle dimensioni della mesh (width == height) per avere formule simmetriche
 		minimal = !is_2nplusone(N);
-			
 	}
 
 

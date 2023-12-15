@@ -57,19 +57,20 @@ public:
 
 	std::tuple<int, int, int, int> get_cardinal_neighbours(Index i) {
 		return {
-			  i + N
-			, i - N
-			, i - 1
-			, i + 1
+			/* nord  */   i + N
+			/* sud   */ , i - N
+			/* ovest */ , i - 1
+			/* est   */ , i + 1
 		};
 	}
 
+
 	std::tuple<int, int, int, int> get_diagonal_neighbours(Index i) {
 		return {
-			  i + N + 1
-			, i + N - 1
-			, i - N - 1
-			, i - N + 1
+			/* nord est   */   i + N + 1
+			/* nord ovest */ , i + N - 1
+			/* sud  ovest */ , i - N - 1
+			/* sud  est   */ , i - N + 1
 		};
 	}
 
@@ -109,64 +110,43 @@ public:
 				const auto [nordest, nordovest, sudovest, sudest] = get_diagonal_neighbours(index(i,j));
 
 				v[coarse.index(ii, jj)] =
-					  0.25 * u[index(i,j)]
-					+ 0.125 * (u[nord] + u[sud] + u[ovest] + u[est])
+					  0.25   * (u[index(i,j)])
+					+ 0.125  * (u[nord] + u[sud] + u[ovest] + u[est])
 					+ 0.0625 * (u[nordest] + u[nordovest] + u[sudovest] + u[sudest]);
 			}
 		}
 	}
 
 
-	/*void interpolate_on_fine(Lattice &coarse, std::vector<double> &u, const std::vector<double> &v) {
-		for (auto &x : u) {
-			x = 0.0;
-		}
-
-
-		for (int i = 1; i < (N-1); ++i) {
-			for (int j = 1; j < (N-1); ++j) {
-				int ii = i / 2;
-				int jj = j / 2;
-
-				if ((i % 2 == 0) and (j % 2 == 0)) {
-					u[index(i,j)] = v[coarse.index(ii, jj)];
-				}
-				else {
-					u[index(i,j)] =
-						0.25 * (v[coarse.index(ii+1,jj)] + v[coarse.index(ii,jj+1)] + v[coarse.index(ii-1,jj)] + v[coarse.index(ii,jj-1)])
-						+ 0.125 * (v[coarse.index(ii+1,jj+1)] + v[coarse.index(ii-1,jj+1)] + v[coarse.index(ii-1,jj-1)] + v[coarse.index(ii+1,jj-1)]);
-				}
-			}
-		}
-	}*/
-
-
 	void interpolate_on_fine(Lattice &coarse, std::vector<double> &u_fine, const std::vector<double> &u_coarse) {
 		// devo iterare solo sui nodi interni
 		for (int i = 1; i < N-1; ++i) {
 			for (int j = 1; j < N-1; ++j) {
-
-				// @TODO: refactor, proprietà distributiva, raccogliere i termini
-
 				if (i % 2 == 0 and j % 2 == 0) {
 					u_fine[index(i,j)] = u_coarse[coarse.index(i/2, j/2)];
 				}
 				else if (i % 2 == 1 and j % 2 == 0) {
 					u_fine[index(i,j)] =
-						  0.5 * u_coarse[coarse.index(    i/2, j/2)]
-						+ 0.5 * u_coarse[coarse.index(1 + i/2, j/2)];
+						0.5 * (
+							  u_coarse[coarse.index(    i/2, j/2)]
+							+ u_coarse[coarse.index(1 + i/2, j/2)]
+						);
 				}
 				else if(i % 2 == 0 and j % 2 == 1) {
 					u_fine[index(i,j)] =
-						  0.5 * u_coarse[coarse.index(i/2,     j/2)]
-						+ 0.5 * u_coarse[coarse.index(i/2, 1 + j/2)];
+						0.5 * (
+							  u_coarse[coarse.index(i/2,     j/2)]
+							+ u_coarse[coarse.index(i/2, 1 + j/2)];
+						);
 				}
 				else {
 					u_fine[index(i,j)] =
-						  0.25 * u_coarse[coarse.index(    i/2,     j/2)]
-						+ 0.25 * u_coarse[coarse.index(    i/2, 1 + j/2)]
-						+ 0.25 * u_coarse[coarse.index(1 + i/2,     j/2)]
-						+ 0.25 * u_coarse[coarse.index(1 + i/2, 1 + j/2)];
+						0.25 * (
+							  u_coarse[coarse.index(    i/2,     j/2)]
+							+ u_coarse[coarse.index(    i/2, 1 + j/2)]
+							+ u_coarse[coarse.index(1 + i/2,     j/2)]
+							+ u_coarse[coarse.index(1 + i/2, 1 + j/2)]
+						);
 				}
 			}
 		}
@@ -194,17 +174,12 @@ public:
 
 
 	void evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y)) {
-		std::pair<int,int> node;
-		double a;
-		double b;
-		
 		for(Index i : boundary_nodes){
-			node = inverse_index(i);
+			const auto [j, k] = inverse_index(i);
+			const double x = x_corner + j * h * width;
+			const double y = y_corner + k * h * height;
 			
-			a = x_corner + node.first * h * width;
-			b = y_corner + node.second * h * height;
-			
-			u[i] = f(a,b);
+			u[i] = f(x,y);
 		}
 
 

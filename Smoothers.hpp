@@ -27,9 +27,13 @@ void gseidel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b
 
 void jacobi_parallel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &old, const std::vector<double> &b) {
 	// sembra che openmp non capisca bene i range based loop di c++11, quindi bisogna adattare il for a qualcosa di tradizionale (for(int i = 0; ...))
+	
+	const auto inner_nodes = mesh.get_inner_nodes();
 	#pragma omp parallel for
 
-	for (Index i : mesh.get_inner_nodes()) {
+	for (int j = 0; j < inner_nodes.size() ; j ++) {
+		auto i = inner_nodes[j];
+
 		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
 
 		u[i] = 0.25 * (b[i] + old[nord] + old[sud] + old[ovest] + old[est]);

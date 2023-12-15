@@ -41,7 +41,7 @@ public:
 		}
 
 
-		minimal = !is_2nplusone(N) || width != height;
+		minimal = !is_2nplusone(N);
 	}
 
 
@@ -86,6 +86,12 @@ public:
 
 
 	Lattice build_coarse() {
+		if (minimal) {
+			fprintf(stderr, "Mesh can't create coarse\n");
+			exit(EXIT_FAILURE);
+		}
+
+
 		return Lattice(
 			  x_corner
 			, y_corner

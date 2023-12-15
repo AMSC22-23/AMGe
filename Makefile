@@ -28,3 +28,6 @@ parallelism:
 	g++ -fopenmp -o parallel test_parallelism.cpp -O2 $(CFLAGS)
 	./parallel
 
+benchmark:
+	g++ -o bench test_jacobi_parallelism.cpp $(CFLAGS) -lbenchmark -lpthread -fopenmp
+	./bench

@@ -24,16 +24,16 @@ public:
 
 		for (int i = 0; i < N; ++i) {
 			for (int j = 0; j < N; ++j) {
-				if(i == 0 || i == N-1 || j == 0 || j == N-1){
-					boundary_nodes.push_back(index(i,j));
-				}else{
+				if (i == 0 || i == N-1 || j == 0 || j == N-1) {
+					boundary_nodes.push_back(index(i, j));
+				} else {
 					inner_nodes.push_back(index(i, j));
 				}
 			}
 		}
 
 
-		// TODO: controlli sulle dimensioni della mesh(done)
+		// TODO: controlli sulle dimensioni della mesh (width == height) per avere formule simmetriche
 		minimal = !is_2nplusone(N);
 			
 	}
@@ -89,33 +89,11 @@ public:
 	}
 
 
-	/*void project_on_coarse(Lattice &coarse, const std::vector<double> &u, std::vector<double> &v) {
-		for (auto &x : v) {
-			x = 0.0;
-		}
-
-
-		for (int i = 2; i < (N-1); i = i + 2) {
-			for (int j = 2; j < (N-1); j = j + 2) {
-				int ii = i / 2;
-				int jj = j / 2;
-
-				v[coarse.index(ii, jj)] =
-					  0.25 * u[index(i,j)]
-					+ 0.125 * (u[index(i+1,j)] + u[index(i,j+1)] + u[index(i-1,j)] + u[index(i,j-1)])
-					+ 0.0625 * (u[index(i+1,j+1)] + u[index(i-1,j+1)] + u[index(i-1,j-1)] + u[index(i+1,j-1)]);
-			}
-		}
-	}*/
-
-	// @TODO: aggiornare alla nostra codebase (cardinal e diagonal neighbours)(DONE)
 	void project_on_coarse(Lattice &coarse, const std::vector<double> &u, std::vector<double> &v) {
 		for (auto &x : v) {
 			x = 0.0;
 		}
 
-
-		// @TODO: aggiornare alla nostra codebase (cardinal e diagonal neighbours)
 		for (int i = 2; i < (N-1); i = i + 2) {
 			for (int j = 2; j < (N-1); j = j + 2) {
 				int ii = i / 2;
@@ -209,7 +187,6 @@ public:
 	}
 
 
-	// @TODO: complete this function(DONE)
 	void evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y)) {
 		std::pair<int,int> node;
 		double a;
@@ -223,6 +200,9 @@ public:
 			
 			u[i] = f(a,b);
 		}
+
+
+		// dovremmo mettere tutti i nodi interni a zero?
 	}
 
 

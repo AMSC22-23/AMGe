@@ -91,7 +91,7 @@ int main (int argc, char *argv[]) {
 
 
     time_t end2 = time(nullptr);
-	time_elapsed = difftime(end, start);
+	time_elapsed = difftime(end2, start2);
 	std::cout << "Il programma parallelo ha impiegato " << time_elapsed << " secondi.\n";
 
 

@@ -20,7 +20,7 @@ using namespace std;
 
 
 void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double x, double y)) {
-	mesh.evaluate_function(u, g);
+	//mesh.evaluate_function(u, g);
 
 	for (Index i : mesh.get_inner_nodes()) {
 		u[i] = 0.0;
@@ -112,23 +112,20 @@ int main (int argc, char *argv[]) {
 	fine.evaluate_forcing_term(b, f);
 	
 
-
-
-	for (int i = 0; i < 1000; ++i) {
+	for (int i = 0; i < 10000; ++i) {
 		#ifdef MULTIGRID
 			two_level(fine, coarse, u_fine, b);
 		#else
 			for (int steps = 0; steps < (PRE_SMOOTHING_STEPS + POST_SMOOTHING_STEPS); ++steps) {
-				gseidel(fine, u_fine, b);
-				//jacobi(fine, u_fine, u_old, b);
-				//std::swap(u_fine, u_old);
+				//gseidel(fine, u_fine, b);
+				jacobi(fine, u_fine, u_old, b);
+				std::swap(u_fine, u_old);
 			}
 		#endif
 
 		residual(fine, u_fine, b, r_fine);
 		std::cout << norm(r_fine) << std::endl;
 	}
-
 
 	return 0;
 }

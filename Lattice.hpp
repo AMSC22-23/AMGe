@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include "Utils.hpp"
 
 
 using Index = int;
@@ -21,14 +22,20 @@ public:
 		h        = width / (N-1);
 
 
-		for (int i = 1; i < N-1; ++i) {
-			for (int j = 1; j < N-1; ++j) {
-				inner_nodes.push_back(index(i, j));
+		for (int i = 0; i < N; ++i) {
+			for (int j = 0; j < N; ++j) {
+				if(i == 0 || i == N-1 || j == 0 || j == N-1){
+					boundary_nodes.push_back(index(i,j));
+				}else{
+					inner_nodes.push_back(index(i, j));
+				}
 			}
 		}
 
 
-		// TODO: controlli sulle dimensioni della mesh
+		// TODO: controlli sulle dimensioni della mesh(done)
+		minimal = !is_2nplusone(N);
+			
 	}
 
 
@@ -82,6 +89,26 @@ public:
 	}
 
 
+	/*void project_on_coarse(Lattice &coarse, const std::vector<double> &u, std::vector<double> &v) {
+		for (auto &x : v) {
+			x = 0.0;
+		}
+
+
+		for (int i = 2; i < (N-1); i = i + 2) {
+			for (int j = 2; j < (N-1); j = j + 2) {
+				int ii = i / 2;
+				int jj = j / 2;
+
+				v[coarse.index(ii, jj)] =
+					  0.25 * u[index(i,j)]
+					+ 0.125 * (u[index(i+1,j)] + u[index(i,j+1)] + u[index(i-1,j)] + u[index(i,j-1)])
+					+ 0.0625 * (u[index(i+1,j+1)] + u[index(i-1,j+1)] + u[index(i-1,j-1)] + u[index(i+1,j-1)]);
+			}
+		}
+	}*/
+
+	// @TODO: aggiornare alla nostra codebase (cardinal e diagonal neighbours)(DONE)
 	void project_on_coarse(Lattice &coarse, const std::vector<double> &u, std::vector<double> &v) {
 		for (auto &x : v) {
 			x = 0.0;
@@ -94,10 +121,13 @@ public:
 				int ii = i / 2;
 				int jj = j / 2;
 
+				const auto [nord, sud, ovest, est] = get_cardinal_neighbours(index(i,j));
+				const auto [nordest, nordovest, sudovest, sudest] = get_diagonal_neighbours(index(i,j));
+
 				v[coarse.index(ii, jj)] =
 					  0.25 * u[index(i,j)]
-					+ 0.125 * (u[index(i+1,j)] + u[index(i,j+1)] + u[index(i-1,j)] + u[index(i,j-1)])
-					+ 0.0625 * (u[index(i+1,j+1)] + u[index(i-1,j+1)] + u[index(i-1,j-1)] + u[index(i+1,j-1)]);
+					+ 0.125 * (u[nord] + u[sud] + u[ovest] + u[est])
+					+ 0.0625 * (u[nordest] + u[nordovest] + u[sudovest] + u[sudest]);
 			}
 		}
 	}
@@ -179,9 +209,20 @@ public:
 	}
 
 
-	// @TODO: complete this function
+	// @TODO: complete this function(DONE)
 	void evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y)) {
-
+		std::pair<int,int> node;
+		double a;
+		double b;
+		
+		for(Index i : boundary_nodes){
+			node = inverse_index(i);
+			
+			a = x_corner + node.first * h * width;
+			b = y_corner + node.second * h * height;
+			
+			u[i] = f(a,b);
+		}
 	}
 
 
@@ -271,6 +312,9 @@ private:
 
 	int N;
 	std::vector<Index> inner_nodes;
+	std::vector<Index> boundary_nodes;
+
+	bool minimal;
 };
 
 

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include "Lattice.hpp"
+#include "Smoothers.hpp"
 
 
 class Multigrid {
@@ -35,9 +36,35 @@ public:
 	}
 
 
-	void step();
-	void solve(double tol = 1e-9, int max_iter = 10000);
-	std::vector<double> get_solution();
+	void step(std::vector<double> &u, const std::vector<double> &b, int lvl = 0) {
+		Lattice &fine = meshes[lvl];
+
+		if (lvl == levels) {
+			// solve well the problem at the coarsest grid, for now we do a fixed amount of iterations
+			for (int it = 0; it < 300; ++it) {
+				gseidel(fine, u, b);
+			}
+		}
+		else {
+			for (int pre = 0; pre < pre_smoothing_steps; ++pre) {
+				gseidel(fine, u, b);
+			}
+
+
+			residual(fine, u, b, res[lvl]);
+			Lattice &coarse = meshes[lvl+1];
+			// projection
+			// recursive call
+			// prolongation
+			// correction
+
+
+
+			for (int post = 0; post < post_smoothing_steps; ++post) {
+				gseidel(meshes[lvl], u, b);
+			}
+		}
+	}
 
 
 	void test_allocation() {

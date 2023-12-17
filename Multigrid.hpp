@@ -3,7 +3,6 @@
 
 
 #include <iostream>
-#include <sys/types.h>
 #include <vector>
 #include "Lattice.hpp"
 #include "Smoothers.hpp"
@@ -40,7 +39,15 @@ public:
 		for (int lvl = 0; lvl < levels; ++lvl) {
 			err.push_back(std::vector<double>(meshes[lvl].numel()));
 			res.push_back(std::vector<double>(meshes[lvl].numel()));
-			b_internal.push_back(std::vector<double>(meshes[lvl].numel()));
+
+			if (lvl == 0) {
+				u_internal.push_back(std::vector<double>());
+				b_internal.push_back(std::vector<double>());
+			}
+			else {
+				u_internal.push_back(std::vector<double>(meshes[lvl].numel()));
+				b_internal.push_back(std::vector<double>(meshes[lvl].numel()));
+			}
 		}
 	}
 

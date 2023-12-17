@@ -28,7 +28,7 @@ int main() {
 	mesh.evaluate_forcing_term(b, f);
 
 
-	Multigrid solver(mesh, 3, 3, 1);
+	Multigrid solver(mesh, 3, 3, 2);
 
 
 	for (int i = 0; i < 100; ++i) {

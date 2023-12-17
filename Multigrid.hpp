@@ -20,6 +20,11 @@ public:
 		, post_smoothing_steps(post_smoothing_steps_)
 		, levels(levels_)
 	{
+		if (levels < 1) {
+			std::cerr << "Multigrid method has to work with at least one level" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
 		// qui ci vanno un po' di allocazioni, inizio dalle mesh
 		for (int lvl = 0; lvl < levels; ++lvl) {
 			if (lvl == 0) {

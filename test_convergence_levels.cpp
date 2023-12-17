@@ -49,7 +49,6 @@ int main(){
         do{
             iterations ++;
             m.step(u, b);
-            //r = m.getResidual();
             residual(mesh, u, b, r);
        }while(norm(r) > 1.e-14);
 

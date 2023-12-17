@@ -10,7 +10,7 @@ all:
 	octave --persist report.m
 
 
-multigrid:
+multigrid_test:
 	g++ -o mg_constructor test_multigrid_class.cpp $(CFLAGS)
 	./mg_constructor
 

@@ -3,6 +3,7 @@
 
 
 #include <iostream>
+#include <sys/types.h>
 #include <vector>
 #include "Lattice.hpp"
 #include "Smoothers.hpp"
@@ -34,6 +35,13 @@ public:
 				meshes.push_back(meshes[lvl-1].build_coarse());
 			}
 		}
+
+		// i vettori di errore, residuo
+		for (int lvl = 0; lvl < levels; ++lvl) {
+			err.push_back(std::vector<double>(meshes[lvl].numel()));
+			res.push_back(std::vector<double>(meshes[lvl].numel()));
+			b_internal.push_back(std::vector<double>(meshes[lvl].numel()));
+		}
 	}
 
 	~Multigrid() {
@@ -44,7 +52,7 @@ public:
 	void step(std::vector<double> &u, const std::vector<double> &b, int lvl = 0) {
 		Lattice &fine = meshes[lvl];
 
-		if (lvl == levels) {
+		if (lvl == (levels-1)) {
 			// solve well the problem at the coarsest grid, for now we do a fixed amount of iterations
 			for (int it = 0; it < 300; ++it) {
 				gseidel(fine, u, b);
@@ -58,15 +66,24 @@ public:
 
 			residual(fine, u, b, res[lvl]);
 			Lattice &coarse = meshes[lvl+1];
+
 			// projection
+			fine.project_on_coarse(coarse, res[lvl], b_internal[lvl+1]);
+
 			// recursive call
+			coarse.evaluate_zero(u_internal[lvl+1]);
+			step(u_internal[lvl+1], b_internal[lvl+1], lvl+1);
+
 			// prolongation
+			fine.interpolate_on_fine(coarse, err[lvl], u_internal[lvl+1]);
+
 			// correction
-
-
+			for (Index i : fine.get_inner_nodes()) {
+				u[i] -= err[lvl][i];
+			}
 
 			for (int post = 0; post < post_smoothing_steps; ++post) {
-				gseidel(meshes[lvl], u, b);
+				gseidel(fine, u, b);
 			}
 		}
 	}
@@ -87,7 +104,8 @@ private:
 	const unsigned int post_smoothing_steps;
 	const unsigned int levels;
 
-	std::vector<std::vector<double>> u;
+	std::vector<std::vector<double>> u_internal;
+	std::vector<std::vector<double>> b_internal;
 	std::vector<std::vector<double>> err;
 	std::vector<std::vector<double>> res;
 	std::vector<Lattice> meshes;

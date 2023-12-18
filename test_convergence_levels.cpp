@@ -1,10 +1,10 @@
 #include <iostream>
+#include<chrono>
 #include "Multigrid.hpp"
 
-#define N 65
+#define N 257
 #define PRE_STEP 10
 #define POST_STEP 10
-
 
 
 double g(double x,double y) {
@@ -17,9 +17,13 @@ double f(double x,double y) {
 }
 
 
-
 int main(){ 
-    std::vector<Multigrid> tests;   
+    std::vector<Multigrid> tests;  
+
+
+    std::chrono::high_resolution_clock::time_point t0;
+	std::chrono::high_resolution_clock::time_point t1;
+	std::int64_t time_elapsed; 
     
     
     Lattice mesh = Lattice(0.0, 0.0, 1.0, 1.0, N);
@@ -36,25 +40,38 @@ int main(){
 
 
     mesh.evaluate_forcing_term(b, f);
+    mesh.evaluate_boundary_conditions(u, g);
 
     
     int lvl = 2;
-    int iterations;
+    t0 = std::chrono::high_resolution_clock::now();
+    
+
+    do{
+        gseidel(mesh, u, b);
+        residual(mesh, u, b, r);
+    }while(norm(r) > 1.e-14); 
+
+
+    t1 = std::chrono::high_resolution_clock::now();
+    time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    std::cout<< "Gauss-Seidel converge in " << time_elapsed << " millisecondi" << std::endl;
+
 
 
     for(Multigrid m : tests){
         mesh.evaluate_boundary_conditions(u, g);
-        iterations = 0;
+        t0 = std::chrono::high_resolution_clock::now();
 
         do{
-            iterations ++;
             m.step(u, b);
             residual(mesh, u, b, r);
        }while(norm(r) > 1.e-14);
 
-
-        std::cout<< "Multigird a " << lvl << " livelli converge in " << iterations << " iterazioni" << std::endl;
-        lvl ++;
+        t1 = std::chrono::high_resolution_clock::now();
+        time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        std::cout<< "Multigrid a " << lvl << " livelli converge in " << time_elapsed << " millisencondi" << std::endl;
+        lvl++;
     }
 
 

@@ -17,6 +17,8 @@ double norm(std::vector<double> &v){
 }
 
 
+//@note: prefer std::string to char pointer
+//@note: std::vector<double> & should be const
 void export_to_matlab(const char *name, std::vector<double> &v, std::ostream &out = std::cout){
 	out
 		<< "# name: "      << name     << std::endl

@@ -3,10 +3,10 @@ clear all
 %test_multigrid.cpp
 
 
-A = dlmread("gs.txt");
-B = dlmread('due.txt');
-C = dlmread('tre.txt');
-D = dlmread('quattro.txt');
+A = dlmread("gseidel.txt");
+B = dlmread('twolvl.txt');
+% C = dlmread('tre.txt');
+% D = dlmread('quattro.txt');
 
 
 % Plot della prima curva

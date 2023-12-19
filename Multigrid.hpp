@@ -11,6 +11,7 @@
 class Multigrid {
 public:
 	Multigrid(
+		//@note: pass by const reference to avoid copy
 		  Lattice mesh
 		, unsigned int pre_smoothing_steps_
 		, unsigned int post_smoothing_steps_
@@ -51,6 +52,7 @@ public:
 		}
 	}
 
+	//@note: nothing wrong with this, but is useless
 	~Multigrid() {
 
 	}

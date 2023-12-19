@@ -10,7 +10,7 @@
 
 using Index = int;
 
-
+//@note: if the class is not template try to split into header and souce files
 class Lattice {
 public:
 	Lattice(double x_corner_, double y_corner_, double width_, double height_, unsigned int N_) {
@@ -21,6 +21,8 @@ public:
 
 
 		if (width != height) {
+			//@note: I know that `std::cout` is clunky but is more aligned with C++
+			//       Do not worry, C++23 has std::format!
 			fprintf(stderr, "Mesh has to be square\n");
 			exit(EXIT_FAILURE);
 		}

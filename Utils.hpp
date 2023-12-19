@@ -4,6 +4,7 @@
 
 #include <bitset>
 #include <cmath>
+#include <string>
 
 
 double norm(std::vector<double> &v){
@@ -17,9 +18,7 @@ double norm(std::vector<double> &v){
 }
 
 
-//@note: prefer std::string to char pointer
-//@note: std::vector<double> & should be const
-void export_to_matlab(const char *name, std::vector<double> &v, std::ostream &out = std::cout){
+void export_to_matlab(const std::string &name, const std::vector<double> &v, std::ostream &out = std::cout){
 	out
 		<< "# name: "      << name     << std::endl
 		<< "# type: matrix"            << std::endl
@@ -34,6 +33,7 @@ void export_to_matlab(const char *name, std::vector<double> &v, std::ostream &ou
 
 	out << '\n' << '\n';
 }
+
 
 bool is_2nplusone(int n){
 	int count=0;

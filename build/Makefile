@@ -1,33 +1,33 @@
-INCLUDE_DIR = ../include
-SRC_DIR     = ../src
-TEST_DIR    = ../test/
+BUILD_DIR = .
+INC_DIR = ../include
+SRC_DIR = ../src
+TST_DIR = ../test
 
 
-# compiler used
 CXX = g++
-
-
-CXXINC = -I $(INCLUDE_DIR)
-
-
-# standard used
 CXXFLAGS += -std=c++17
+INCFLAGS = -I $(INC_DIR)
+OPTFLAGS = -O2
 
 
-# warnings
-# CXXWARNS = -Wall
+SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
 
 
-# optimization flags
-OPT_LVL = -O2
+all: main
 
 
-TARGET = main
-TARGET_TEST = convergence_levels
+main: $(OBJS)
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o $@ $^
 
 
-all:
-	g++ -o main ../src/main.cpp $(CXXFLAGS) -I../include
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -c -o $@ $<
+
+
+clean:
+	rm -f main
+	rm -f *.o
 
 
 #

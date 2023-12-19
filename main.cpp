@@ -5,11 +5,6 @@
 #include "Smoothers.hpp"
 #include "Utils.hpp"
 
-//@note: it is not a good practice to pollute the global scope with this namespace
-using namespace std;
-
-
-
 
 void set_initial_guess(Lattice &mesh, std::vector<double> &u, double (*g)(double x, double y)) {
 	mesh.evaluate_function(u, g);
@@ -69,7 +64,7 @@ double f(double x,double y) {
 
 int main (int argc, char *argv[]) {
 	//@note: could read the parameters from command line or a parameter file
-	const int N = 65;
+	const int N = 1025;
 	
 	
 	Lattice fine(0.0, 0.0, 1.0, 1.0, N);
@@ -100,7 +95,6 @@ int main (int argc, char *argv[]) {
 		residual(fine, u_fine, b, r_fine);
 		std::cout << norm(r_fine) << std::endl;
 	}
-
 
 
 	return 0;

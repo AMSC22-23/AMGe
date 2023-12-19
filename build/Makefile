@@ -1,28 +1,37 @@
 BUILD_DIR = .
 INC_DIR = ../include
 SRC_DIR = ../src
-TST_DIR = ../test
+TEST_DIR = ../test
 
 
 CXX = g++
 CXXFLAGS += -std=c++17
 INCFLAGS = -I $(INC_DIR)
 OPTFLAGS = -O2
+TESTFLAGS = -fopenmp
 
 
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
-OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
+SRCS      = $(wildcard $(SRC_DIR)/*.cpp)
+SRCS_TEST = $(wildcard $(TEST_DIR)/*.cpp)
+OBJS      = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
+OBJS_TEST = $(patsubst $(TEST_DIR)/%.cpp,$(BUILD_DIR),$(SRCS_TEST))
 
 
 all: main
 
 
 main: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o $@ ../main.cpp $^
 
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -c -o $@ $<
+
+
+test: $(OBJS)
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_coarsening $(TEST_DIR)/test_coarsening.cpp $^
+	
+
 
 
 clean:

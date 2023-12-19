@@ -7,10 +7,10 @@
 #include <string>
 
 
-double norm(std::vector<double> &v){
+double norm(const std::vector<double> &v){
 	double result = 0.0;
 
-	for (auto x : v) {
+	for (double x : v) {
 		result += x * x;
 	}
 
@@ -62,7 +62,6 @@ bool is_2nplusone(int n){
 	
 	return true;
 }
-
 
 
 #endif

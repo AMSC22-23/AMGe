@@ -34,6 +34,7 @@ test: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_convergence $(TEST_DIR)/test_convergence.cpp $^
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_convergence_levels $(TEST_DIR)/test_convergence_levels.cpp $^
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o bench_multilevel $(TEST_DIR)/benchmark_multilevel.cpp $^ $(BENCHFLAGS)
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o bench_jacobi $(TEST_DIR)/benchmark_jacobi.cpp $^ $(BENCHFLAGS)
 
 
 clean:

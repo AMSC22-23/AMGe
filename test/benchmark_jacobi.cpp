@@ -1,4 +1,3 @@
-//@note: where shoudl I find this header?
 #include <benchmark/benchmark.h>
 #include <iostream>
 #include <vector>
@@ -19,7 +18,7 @@ double f(double x,double y) {
 
 static void BM_JacobiSerial(benchmark::State& state) {
 	int n = state.range(0);
-	Lattice fine(0.0, 0.0, 1.0, 1.0, n);
+	Lattice fine(0.0, 0.0, 1.0, 1.0, n+1);
 
 
 	std::vector<double> old(fine.numel());
@@ -40,7 +39,7 @@ static void BM_JacobiSerial(benchmark::State& state) {
 
 static void BM_JacobiParallelNaive(benchmark::State& state) {
 	int n = state.range(0);
-	Lattice fine(0.0, 0.0, 1.0, 1.0, n);
+	Lattice fine(0.0, 0.0, 1.0, 1.0, n+1);
 
 
 	std::vector<double> old(fine.numel());
@@ -61,7 +60,7 @@ static void BM_JacobiParallelNaive(benchmark::State& state) {
 
 static void BM_JacobiParallel(benchmark::State& state) {
 	int n = state.range(0);
-	Lattice fine(0.0, 0.0, 1.0, 1.0, n);
+	Lattice fine(0.0, 0.0, 1.0, 1.0, n+1);
 
 
 	std::vector<double> old(fine.numel());

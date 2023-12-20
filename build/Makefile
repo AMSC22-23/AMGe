@@ -9,6 +9,7 @@ CXXFLAGS += -std=c++17
 INCFLAGS = -I $(INC_DIR)
 OPTFLAGS = -O2
 TESTFLAGS = -fopenmp
+BENCHFLAGS = -lbenchmark -lpthread
 
 
 SRCS      = $(wildcard $(SRC_DIR)/*.cpp)
@@ -32,8 +33,7 @@ test: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_coarsening $(TEST_DIR)/test_coarsening.cpp $^
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_convergence $(TEST_DIR)/test_convergence.cpp $^
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_convergence_levels $(TEST_DIR)/test_convergence_levels.cpp $^
-	
-
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o bench_multilevel $(TEST_DIR)/benchmark_multilevel.cpp $^ $(BENCHFLAGS)
 
 
 clean:

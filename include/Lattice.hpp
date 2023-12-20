@@ -22,22 +22,37 @@ public:
 	int numel();
 
 	
+	// There was the intention to return an iterator to the inner nodes of the mesh, but was inconvenient for the parallelization
 	const std::vector<Index>& get_inner_nodes();
-	std::tuple<int, int, int, int> get_cardinal_neighbours(Index i);
-	std::tuple<int, int, int, int> get_diagonal_neighbours(Index i);
+
+
+	// The solution vector is a 1D vector, this map and its inverse helps converting 2D indeces (natural for a 2D mesh) into 1D equivalents
 	Index index(int i, int j);
 	std::pair<int, int> inverse_index(Index i);
+
+
+	// This functions are safe when called on indeces in inner_nodes, the special cases won't be implemented
+	std::tuple<int, int, int, int> get_cardinal_neighbours(Index i);
+	std::tuple<int, int, int, int> get_diagonal_neighbours(Index i);
+
+
 	Lattice build_coarse();
+
+
+	// no check whatsoever of mesh size, assume that coarse == this.build_coarse()
 	void project_on_coarse(Lattice &coarse, const std::vector<double> &u, std::vector<double> &v);
 	void interpolate_on_fine(Lattice &coarse, std::vector<double> &u_fine, const std::vector<double> &u_coarse);
-	void evaluate_zero(std::vector<double> &u);
-	void evaluate_forcing_term(std::vector<double> &b, double (*f)(double x, double y));
-	void evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y));
-	void evaluate_function(std::vector<double> &u, double (*f)(double x, double y));
+
+
+	void evaluate_zero               (std::vector<double> &u);
+	void evaluate_forcing_term       (std::vector<double> &b, double (*f)(double x, double y));
+	void evaluate_boundary_conditions(std::vector<double> &u, double (*g)(double x, double y));
+	void evaluate_function           (std::vector<double> &u, double (*f)(double x, double y));
+
+
 	void print_vector(const std::vector<double> &u, const char *name);
 
 
-	// test functions
 	void test_constructor();
 	void test_inner_nodes();
 	void test_index();
@@ -46,9 +61,9 @@ public:
 
 private:
 	double  x_corner,
-			y_corner,
-			width,
-			height;
+		y_corner,
+		width,
+		height;
 
 	double h;
 

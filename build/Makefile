@@ -8,8 +8,12 @@ CXX = g++
 CXXFLAGS += -std=c++17
 INCFLAGS = -I $(INC_DIR)
 OPTFLAGS = -O2
-TESTFLAGS = -fopenmp
+PARALLELFLAGS = -fopenmp
 BENCHFLAGS = -lbenchmark -lpthread
+
+
+# hack
+CXXFLAGS += $(PARALLELFLAGS)
 
 
 SRCS      = $(wildcard $(SRC_DIR)/*.cpp)
@@ -35,6 +39,11 @@ test: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_convergence_levels $(TEST_DIR)/test_convergence_levels.cpp $^
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o bench_multilevel $(TEST_DIR)/benchmark_multilevel.cpp $^ $(BENCHFLAGS)
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o bench_jacobi $(TEST_DIR)/benchmark_jacobi.cpp $^ $(BENCHFLAGS)
+
+
+benchmark:
+	./bench_jacobi --benchmark_format=csv > jacobi.csv
+	python plot.py -f jacobi.csv
 
 
 clean:

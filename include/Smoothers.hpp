@@ -4,10 +4,13 @@
 
 #include <vector>
 #include "Lattice.hpp"
+#include "Graph.hpp"
 
 
 void residual             (Lattice &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r);
+void residual             (Graph &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r);
 void gseidel              (Lattice &mesh,       std::vector<double> &u, const std::vector<double> &b);
+void gseidel              (Graph &mesh,       std::vector<double> &u, const std::vector<double> &b);
 void jacobi               (Lattice &mesh,       std::vector<double> &u, const std::vector<double> &old, const std::vector<double> &b);
 void jacobi_parallel_naive(Lattice &mesh,       std::vector<double> &u, const std::vector<double> &old, const std::vector<double> &b);
 void jacobi_parallel      (Lattice &mesh,       std::vector<double> &u, const std::vector<double> &old, const std::vector<double> &b);

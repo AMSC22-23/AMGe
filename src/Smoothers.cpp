@@ -11,7 +11,26 @@ void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<dou
 }
 
 
+void residual(Graph &mesh, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {
+	// @TODO: add also parallelization here
+	for (Index i : mesh.get_inner_nodes()) {
+		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
+
+		r[i] = 4.0 * u[i] - u[nord] - u[sud] - u[ovest] - u[est] - b[i];
+	}
+}
+
+
 void gseidel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b) {
+	for (Index i : mesh.get_inner_nodes()) {
+		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
+
+		u[i] = 0.25 * (b[i] + u[nord] + u[sud] + u[ovest] + u[est]);
+	}
+}
+
+
+void gseidel(Graph &mesh, std::vector<double> &u, const std::vector<double> &b) {
 	for (Index i : mesh.get_inner_nodes()) {
 		const auto [nord, sud, ovest, est] = mesh.get_cardinal_neighbours(i);
 

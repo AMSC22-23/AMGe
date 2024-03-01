@@ -87,8 +87,12 @@ public:
 			fine.interpolate_on_fine(coarse, err[lvl], u_internal[lvl+1]);
 
 			// correction
-			for (Index i : fine.get_inner_nodes()) {
-				u[i] -= err[lvl][i];
+			for (int i = 0; i < fine.get_nodes().size(); i++) {
+				if(fine.get_bool_boundary().at(i) == false){
+					
+					u[i] -= err[lvl][i];
+				
+				}
 			}
 
 			for (int post = 0; post < post_smoothing_steps; ++post) {

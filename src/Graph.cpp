@@ -27,18 +27,21 @@ Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, 
 	for (int i = 0; i < N; ++i) {
 		for (int j = 0; j < N; ++j) {
 			if (i == 0 || i == N-1 || j == 0 || j == N-1) {
-				boundary_nodes.push_back(index(i, j));
                 boundary_bool.push_back(true);
 			} else {
-				inner_nodes.push_back(index(i, j));
                 boundary_bool.push_back(false);
 			}
-            nodes.push_back(neighbour);
+            
+			
+			nodes.push_back(neighbour);
+			position_index[node] = std::make_pair(i,j);
+			position_coordinates[std::make_pair(i,j)] = node;
 
 
             if(i < N - 1){
                 neighbours.push_back(node + N);
                 weights.push_back(0.125);
+				cardinal_neighbour_bool.push_back(true);
                 neighbour++;
             }
 
@@ -46,6 +49,7 @@ Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, 
             if(i > 0){
                 neighbours.push_back(node - N);
                 weights.push_back(0.125);
+				cardinal_neighbour_bool.push_back(true);
                 neighbour++;
             }
 
@@ -53,36 +57,42 @@ Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, 
             if(j > 0){
                 neighbours.push_back(node - 1);
                 weights.push_back(0.125);
+				cardinal_neighbour_bool.push_back(true);
                 neighbour++;
             }
 
             if(i < N - 1){
                 neighbours.push_back(node + 1);
                 weights.push_back(0.125);
+				cardinal_neighbour_bool.push_back(true);
                 neighbour++;
             }
 
             if(i < N - 1 && j < N - 1){
                 neighbours.push_back(node + N + 1);
                 weights.push_back(0.0625);
+				cardinal_neighbour_bool.push_back(false);
                 neighbour++;
             }
 
             if(i < N - 1 && j > 0){
                 neighbours.push_back(node + N - 1);
                 weights.push_back(0.0625);
+				cardinal_neighbour_bool.push_back(false);
                 neighbour++;
             }
 
             if(i > 0 && j > 0){
                 neighbours.push_back(node - N - 1);
                 weights.push_back(0.0625);
+				cardinal_neighbour_bool.push_back(false);
                 neighbour++;
             }
 
             if(i > 0 && j < N - 1){
                 neighbours.push_back(node - N + 1);
                 weights.push_back(0.0625);
+				cardinal_neighbour_bool.push_back(false);
                 neighbour++;
             }
 
@@ -101,38 +111,78 @@ int Graph::numel() {
 }
 
 
-const std::vector<Index>& Graph::get_inner_nodes() {
-	return inner_nodes;
+
+
+const std::vector<Index>& Graph::get_nodes(){
+	return nodes;
 }
 
 
-std::tuple<int, int, int, int> Graph::get_cardinal_neighbours(Index i) {
-	return {
-		/* nord  */   neighbours.at(nodes.at(i))
-		/* sud   */ , neighbours.at(nodes.at(i) + 1)
-		/* ovest */ , neighbours.at(nodes.at(i) + 2)
-		/* est   */ , neighbours.at(nodes.at(i) + 3)
-	};
+const std::vector<Index>& Graph::get_neighbours(){
+	return neighbours;
 }
 
 
-std::tuple<int, int, int, int> Graph::get_diagonal_neighbours(Index i) {
-	return {
-		/* nord est   */   neighbours.at(nodes.at(i) + 4)
-		/* nord ovest */ , neighbours.at(nodes.at(i) + 5)
-		/* sud  ovest */ , neighbours.at(nodes.at(i) + 6)
-		/* sud  est   */ , neighbours.at(nodes.at(i) + 7)
-	};
+const std::vector<bool>& Graph::get_bool_boundary(){
+	return boundary_bool;
+}
+
+
+const std::vector<double>& Graph::get_weights(){
+	return weights;
+}
+
+const std::vector<bool>& Graph::get_bool_cardinal_neighbour(){
+	return cardinal_neighbour_bool;
+}
+
+
+const std::map<Index, std::pair<int, int>>& Graph::get_position_index(){
+	return position_index;
+}
+
+
+const std::map<std::pair<int, int>, Index>& Graph::get_position_coordinates(){
+	return position_coordinates;
+}
+
+
+std::vector<int> Graph::get_cardinal_neighbours(Index i) {
+	std::vector<int> cardinal_neighbours;
+	
+	for(int j = 0; j < num_neighbours(i); j++){
+		if(get_bool_cardinal_neighbour().at(nodes.at(i) + j) == true){
+			
+			cardinal_neighbours.push_back(neighbours.at(nodes.at(i) + j));
+		}
+	}
+	
+	return cardinal_neighbours;
+
+}
+
+
+std::vector<int> Graph::get_diagonal_neighbours(Index i) {
+	std::vector<int> cardinal_neighbours;
+	
+	for(int j = 0; j < num_neighbours(i); j++){
+		if(get_bool_cardinal_neighbour().at(nodes.at(i) + j) == false){
+			
+			cardinal_neighbours.push_back(neighbours.at(nodes.at(i) + j));
+		}
+	}
+	
+	return cardinal_neighbours;
 }
 
 
 Index Graph::index(int i, int j) {
-	return i + j * N;
+	return position_coordinates.at(std::make_pair(i,j));
 }
 
 
 std::pair<int, int> Graph::inverse_index(Index i) {
-	return {i % N, i / N};
+	return position_index.at(i);
 }
 
 
@@ -153,7 +203,11 @@ Graph Graph::build_coarse() {
 }
 
 int Graph::num_neighbours(Index i){
-    return nodes.at(i + 1) - nodes.at(i);
+	if(i < nodes.size()-1){
+    	return nodes.at(i + 1) - nodes.at(i);
+	}else{
+		return neighbours.size() - nodes.at(i) - 1;
+	}
 }
 
 
@@ -215,50 +269,56 @@ void Graph::interpolate_on_fine(Graph &coarse, std::vector<double> &u_fine, cons
 
 
 void Graph::evaluate_zero(std::vector<double> &u) {
-	for (int i = 0; i < numel(); ++i) {
+	for (int i = 0; i < nodes.size(); ++i) {
 		u[i] = 0.0;
 	}
 }
 
 
 void Graph::evaluate_forcing_term(std::vector<double> &b, double (*f)(double x, double y)) {
-	for (int j = 0; j < N; ++j) {
-		for (int i = 0; i < N; ++i) {
-			double x = x_corner + i * h * width;
-			double y = y_corner + j * h * height;
+	std::pair<int,int> value;
+
+	for(Index z = 0; z < nodes.size(); z++){
+		value = inverse_index(z);
+
+		double x = x_corner + value.first * h * width;
+		double y = y_corner + value.second * h * height;
 
 
-			b[index(i,j)] = h * h * f(x,y);
-		}
+		b[index(value.first,value.second)] = h * h * f(x,y);
 	}
 }
 
 
 void Graph::evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y)) {
-	for (Index i : boundary_nodes) {
-		const auto [j, k] = inverse_index(i);
-		const double x = x_corner + j * h * width;
-		const double y = y_corner + k * h * height;
+	for (Index i = 0; i < nodes.size(); i++){
+		if(boundary_bool.at(i) == true){
+			const auto [j, k] = inverse_index(i);
+			const double x = x_corner + j * h * width;
+			const double y = y_corner + k * h * height;
 
-		u[i] = f(x,y);
-	}
+			u[i] = f(x,y);
+		
+		}else{
+			u[i] = 0.0;
 
-
-	for (Index i : inner_nodes) {
-		u[i] = 0.0;
+		}
 	}
 }
 
 
 void Graph::evaluate_function(std::vector<double> &u, double (*f)(double x, double y)) {
-	for (int j = 0; j < N; ++j) {
-		for (int i = 0; i < N; ++i) {
-			double x = x_corner + i * h * width;
-			double y = y_corner + j * h * height;
+	std::pair<int,int> value;
+
+	for(Index z = 0; z < nodes.size(); z++){
+			value = inverse_index(z);
+			
+			double x = x_corner + value.first * h * width;
+			double y = y_corner + value.second * h * height;
 
 
-			u[index(i,j)] = f(x,y);
-		}
+			u[index(value.first,value.second)] = f(x,y);
+
 	}
 }
 
@@ -298,8 +358,10 @@ void Graph::test_constructor() {
 
 
 void Graph::test_inner_nodes() {
-	for (Index i : inner_nodes) {
-		std::cout << i << std::endl;
+	for (int i = 0; i < nodes.size(); i++) {
+		if(boundary_bool[i] == false){
+			std::cout << i << std::endl;
+		}
 	}
 }
 

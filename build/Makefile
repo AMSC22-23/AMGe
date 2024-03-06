@@ -16,18 +16,17 @@ BENCHFLAGS = -lbenchmark -lpthread
 CXXFLAGS += $(PARALLELFLAGS)
 
 
-SRCS      = $(wildcard $(SRC_DIR)/*.cpp)
-SRCS_TEST = $(wildcard $(TEST_DIR)/*.cpp)
-OBJS      = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
-OBJS_TEST = $(patsubst $(TEST_DIR)/%.cpp,$(BUILD_DIR),$(SRCS_TEST))
+SRCS      = $(wildcard $(SRC_DIR)/*.cpp)  #file cpp in src
+SRCS_TEST = $(wildcard $(TEST_DIR)/*.cpp) # file cpp in test
+OBJS      = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))  # file cpp nella lista di SRCS diventano .o in build
+OBJS_TEST = $(patsubst $(TEST_DIR)/%.cpp,$(BUILD_DIR),$(SRCS_TEST)) # simile con file cpp della lista test
 
 
 all: main
 
 
 main: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o $@ ../main.cpp $^
-
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o $@ ../main.cpp $^ #
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -c -o $@ $<
@@ -35,6 +34,8 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 test: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_coarsening $(TEST_DIR)/test_coarsening.cpp $^
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_multigrid2 $(TEST_DIR)/test_multigrid2.cpp $^
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_multigrid $(TEST_DIR)/test_multigrid.cpp $^
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_convergence $(TEST_DIR)/test_convergence.cpp $^
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o test_convergence_levels $(TEST_DIR)/test_convergence_levels.cpp $^
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o bench_multilevel $(TEST_DIR)/benchmark_multilevel.cpp $^ $(BENCHFLAGS)

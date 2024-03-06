@@ -1,3 +1,2 @@
-*.txt
-multigrid
-.vscode
+.vscode/
+build/

@@ -42,6 +42,11 @@ test: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(OPTFLAGS) -o bench_jacobi $(TEST_DIR)/benchmark_jacobi.cpp $^ $(BENCHFLAGS)
 
 
+controllo: test
+	./test_multigrid2 | tee temp_multigrid2.txt
+	diff -s temp_multigrid2.txt reference_multigrid2.txt
+
+
 benchmark:
 	./bench_jacobi --benchmark_format=csv > jacobi.csv
 	python plot.py -f jacobi.csv

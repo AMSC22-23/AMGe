@@ -28,70 +28,62 @@ Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, 
 		for (int j = 0; j < N; ++j) {
 			if (i == 0 || i == N-1 || j == 0 || j == N-1) {
                 boundary_bool.push_back(true);
+				boundary.push_back(i);
 			} else {
                 boundary_bool.push_back(false);
 			}
             
 			
-			nodes.push_back(neighbour);
-			position_index[node] = std::make_pair(i,j);
+			nodes.push_back(Triplet(neighbour, i, j));
 			position_coordinates[std::make_pair(i,j)] = node;
 
 
             if(i < N - 1){
-                neighbours.push_back(node + N);
-                weights.push_back(0.125);
+				neighbours.push_back(std::make_pair(node + N, 0.125));
 				cardinal_neighbour_bool.push_back(true);
                 neighbour++;
             }
 
 
             if(i > 0){
-                neighbours.push_back(node - N);
-                weights.push_back(0.125);
+				neighbours.push_back(std::make_pair(node - N, 0.125));
 				cardinal_neighbour_bool.push_back(true);
                 neighbour++;
             }
 
 
             if(j > 0){
-                neighbours.push_back(node - 1);
-                weights.push_back(0.125);
+				neighbours.push_back(std::make_pair(node - 1, 0.125));
 				cardinal_neighbour_bool.push_back(true);
                 neighbour++;
             }
 
             if(i < N - 1){
-                neighbours.push_back(node + 1);
-                weights.push_back(0.125);
+				neighbours.push_back(std::make_pair(node + 1, 0.125));
 				cardinal_neighbour_bool.push_back(true);
                 neighbour++;
             }
 
             if(i < N - 1 && j < N - 1){
-                neighbours.push_back(node + N + 1);
-                weights.push_back(0.0625);
+				neighbours.push_back(std::make_pair(node + N + 1, 0.0625));
 				cardinal_neighbour_bool.push_back(false);
                 neighbour++;
             }
 
             if(i < N - 1 && j > 0){
-                neighbours.push_back(node + N - 1);
-                weights.push_back(0.0625);
+				neighbours.push_back(std::make_pair(node + N - 1, 0.0625));
 				cardinal_neighbour_bool.push_back(false);
                 neighbour++;
             }
 
             if(i > 0 && j > 0){
-                neighbours.push_back(node - N - 1);
-                weights.push_back(0.0625);
+				neighbours.push_back(std::make_pair(node - N - 1, 0.0625));
 				cardinal_neighbour_bool.push_back(false);
                 neighbour++;
             }
 
             if(i > 0 && j < N - 1){
-                neighbours.push_back(node - N + 1);
-                weights.push_back(0.0625);
+				neighbours.push_back(std::make_pair(node - N + 1, 0.0625));
 				cardinal_neighbour_bool.push_back(false);
                 neighbour++;
             }
@@ -111,15 +103,17 @@ int Graph::numel() {
 }
 
 
-
-
-const std::vector<Index>& Graph::get_nodes(){
+const std::vector<Triplet>& Graph::get_nodes(){
 	return nodes;
 }
 
 
-const std::vector<Index>& Graph::get_neighbours(){
+const std::vector<std::pair<Index, double>>& Graph::get_neighbours(){
 	return neighbours;
+}
+
+const std::vector<Index>& Graph::get_boundary(){
+	return boundary;
 }
 
 
@@ -128,18 +122,11 @@ const std::vector<bool>& Graph::get_bool_boundary(){
 }
 
 
-const std::vector<double>& Graph::get_weights(){
-	return weights;
-}
-
 const std::vector<bool>& Graph::get_bool_cardinal_neighbour(){
 	return cardinal_neighbour_bool;
 }
 
 
-const std::map<Index, std::pair<int, int>>& Graph::get_position_index(){
-	return position_index;
-}
 
 
 const std::map<std::pair<int, int>, Index>& Graph::get_position_coordinates(){
@@ -151,9 +138,9 @@ std::vector<int> Graph::get_cardinal_neighbours(Index i) {
 	std::vector<int> cardinal_neighbours;
 	
 	for(int j = 0; j < num_neighbours(i); j++){
-		if(get_bool_cardinal_neighbour().at(nodes.at(i) + j) == true){
+		if(get_bool_cardinal_neighbour().at(nodes.at(i).index_node + j) == true){
 			
-			cardinal_neighbours.push_back(neighbours.at(nodes.at(i) + j));
+			cardinal_neighbours.push_back(neighbours.at(nodes.at(i).index_node + j).first);
 		}
 	}
 	
@@ -162,13 +149,18 @@ std::vector<int> Graph::get_cardinal_neighbours(Index i) {
 }
 
 
+std::pair<Index, int> Graph::get_node_neighbours(Index i){
+	return std::make_pair(nodes.at(i).index_node, num_neighbours(i));
+}
+
+
 std::vector<int> Graph::get_diagonal_neighbours(Index i) {
 	std::vector<int> cardinal_neighbours;
 	
 	for(int j = 0; j < num_neighbours(i); j++){
-		if(get_bool_cardinal_neighbour().at(nodes.at(i) + j) == false){
+		if(get_bool_cardinal_neighbour().at(nodes.at(i).index_node + j) == false){
 			
-			cardinal_neighbours.push_back(neighbours.at(nodes.at(i) + j));
+			cardinal_neighbours.push_back(neighbours.at(nodes.at(i).index_node + j).first);
 		}
 	}
 	
@@ -182,7 +174,7 @@ Index Graph::index(int i, int j) {
 
 
 std::pair<int, int> Graph::inverse_index(Index i) {
-	return position_index.at(i);
+	return  std::make_pair(nodes.at(i).x, nodes.at(i).y);
 }
 
 
@@ -204,14 +196,16 @@ Graph Graph::build_coarse() {
 
 int Graph::num_neighbours(Index i){
 	if(i < nodes.size()-1){
-    	return nodes.at(i + 1) - nodes.at(i);
+    	return nodes.at(i + 1).index_node - nodes.at(i).index_node;
 	}else{
-		return neighbours.size() - nodes.at(i) - 1;
+		return neighbours.size() - nodes.at(i).index_node - 1;
 	}
 }
 
 
 void Graph::project_on_coarse(Graph &coarse, const std::vector<double> &u, std::vector<double> &v) {
+	std::pair<Index, double> neighbour;
+
 	for (auto &x : v) {
 		x = 0.0;
 	}
@@ -225,8 +219,9 @@ void Graph::project_on_coarse(Graph &coarse, const std::vector<double> &u, std::
 			v[coarse.index(ii, jj)] = 0.25   * (u[index(i,j)]);
 
             for(int z = 0; z < num_neighbours(index(i,j)); z++){
-
-                v[coarse.index(ii, jj)] = u[neighbours.at(nodes.at(index(i,j)+z))] * weights.at(nodes.at(index(i,j)+z));
+				
+				neighbour = neighbours.at(nodes.at(index(i,j)+z).index_node);
+                v[coarse.index(ii, jj)] = u[neighbour.first] * neighbour.second;
             }
 		}
 	}
@@ -291,18 +286,11 @@ void Graph::evaluate_forcing_term(std::vector<double> &b, double (*f)(double x, 
 
 
 void Graph::evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y)) {
-	for (Index i = 0; i < nodes.size(); i++){
-		if(boundary_bool.at(i) == true){
+	for (Index i : boundary){
 			const auto [j, k] = inverse_index(i);
 			const double x = x_corner + j * h * width;
 			const double y = y_corner + k * h * height;
-
 			u[i] = f(x,y);
-		
-		}else{
-			u[i] = 0.0;
-
-		}
 	}
 }
 

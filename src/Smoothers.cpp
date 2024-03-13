@@ -13,6 +13,7 @@ void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<dou
 
 void residual(Graph &graph, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {  
 	// @TODO: add also parallelization here
+	std::pair<Index, double> neighbour;
 	for (int i = 0; i < graph.get_nodes().size(); i++) {
 
 		if(graph.get_bool_boundary().at(i) == false){
@@ -21,9 +22,11 @@ void residual(Graph &graph, const std::vector<double> &u, const std::vector<doub
 			
 			for(int j = 0; j < graph.num_neighbours(i); j++){
 
-					if(graph.get_weights().at(graph.get_nodes().at(i) + j) == 0.125){
+					neighbour = graph.get_neighbours().at(graph.get_nodes().at(i).index_node + j);
+
+					if(neighbour.second == 0.125){
 						
-						r[i] = r[i] - u[graph.get_neighbours().at(graph.get_nodes().at(i) + j)];
+						r[i] = r[i] - u[neighbour.first];
 					
 					}
 			}

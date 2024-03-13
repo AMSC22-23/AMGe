@@ -7,6 +7,7 @@
 #include <tuple>
 #include <map>
 #include "Utils.hpp"
+#include "Triplet.hpp"
 
 
 using Index = int;
@@ -26,27 +27,23 @@ public:
 
 
 	// return a vector where each element rapresent a node and points to its first neighbour in vector neighbours
-	const std::vector<Index>& get_nodes();
+	const std::vector<Triplet>& get_nodes();
 
 
 	// return a vector of nodes identified by their index
-	const std::vector<Index>& get_neighbours();
+	const std::vector<std::pair<Index, double>>& get_neighbours();
+
+
+	//return index of nodes in the boundary
+	const std::vector<Index>& get_boundary();
 
 
 	// return a vector of the same size of nodes, it specifies if the element is in the boundary or not
 	const std::vector<bool>& get_bool_boundary();
 
 
-	// return a vector of the same size of neighbours, it specifies the weight of the link between the element in vector nodes and the element in neighbours at the same index
-	const std::vector<double>& get_weights();
-
-
 	// return a vector of the same size of neighbours, it specifies if the neighbour is cardinal or  not
 	const std::vector<bool>& get_bool_cardinal_neighbour();
-
-
-	// return a vector with the correspondences between an index of the node and its coordinates in the system (index is the key)
-	const std::map<Index, std::pair<int, int>>& get_position_index();
 
 
 	// return a vector correspondence between an index of the node and its coordinates in the system (coordinates are the key)
@@ -61,6 +58,7 @@ public:
 	// This functions are safe when called on indeces in inner_nodes, the special cases won't be implemented
 	std::vector<int> get_cardinal_neighbours(Index i);
 	std::vector<int> get_diagonal_neighbours(Index i);
+	std::pair<Index, int> get_node_neighbours(Index i);
 
 
 	Graph build_coarse();
@@ -98,13 +96,12 @@ private:
 	double h;
 
 	int N;
-    std::vector<Index> nodes;
-    std::vector<Index> neighbours;
-    std::vector<double> weights;
+    std::vector<Triplet> nodes;
+	std::vector<std::pair<Index, double>> neighbours;
     std::vector<bool> boundary_bool;
 	std::vector<bool> cardinal_neighbour_bool;
-	std::map<Index,std::pair<int, int>> position_index;
 	std::map<std::pair<int, int>, Index> position_coordinates;
+	std::vector<Index> boundary;
 
 
 	bool minimal;

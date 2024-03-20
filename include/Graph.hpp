@@ -7,7 +7,7 @@
 #include <tuple>
 #include <map>
 #include "Utils.hpp"
-#include "Triplet.hpp"
+#include "Node.hpp"
 
 
 using Index = int;
@@ -27,7 +27,7 @@ public:
 
 
 	// return a vector where each element rapresent a node and points to its first neighbour in vector neighbours
-	const std::vector<Triplet>& get_nodes();
+	const std::vector<Node>& get_nodes();
 
 
 	// return a vector of nodes identified by their index
@@ -49,6 +49,8 @@ public:
 	// return a vector correspondence between an index of the node and its coordinates in the system (coordinates are the key)
 	const std::map<std::pair<int,int>, Index>& get_position_coordinates();
 
+
+	int get_index_bool();
 
 	// The solution vector is a 1D vector, this map and its inverse helps converting 2D indeces (natural for a 2D mesh) into 1D equivalents
 	Index index(int i, int j);
@@ -96,12 +98,13 @@ private:
 	double h;
 
 	int N;
-    std::vector<Triplet> nodes;
+    std::vector<Node> nodes;
 	std::vector<std::pair<Index, double>> neighbours;
     std::vector<bool> boundary_bool;
 	std::vector<bool> cardinal_neighbour_bool;
 	std::map<std::pair<int, int>, Index> position_coordinates;
 	std::vector<Index> boundary;
+	int index_bool;
 
 
 	bool minimal;

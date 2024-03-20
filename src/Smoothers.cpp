@@ -24,7 +24,7 @@ void residual(Graph &graph, const std::vector<double> &u, const std::vector<doub
 
 					neighbour = graph.get_neighbours().at(graph.get_nodes().at(i).index_node + j);
 
-					if(neighbour.second == 0.125){
+					if(graph.get_bool_cardinal_neighbour().at(graph.get_nodes().at(i).index_node + j)){
 						
 						r[i] = r[i] - u[neighbour.first];
 					

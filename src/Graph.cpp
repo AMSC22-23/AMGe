@@ -22,20 +22,27 @@ Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, 
 
     int node = 0;
     int neighbour = 0;
+	index_bool=0;
+	int node_neighbours;
 
 
 	for (int i = 0; i < N; ++i) {
 		for (int j = 0; j < N; ++j) {
 			if (i == 0 || i == N-1 || j == 0 || j == N-1) {
                 boundary_bool.push_back(true);
-				boundary.push_back(i);
+				boundary.push_back(node);
+				nodes.push_back(Node(neighbour, i, j));
+				position_coordinates[std::make_pair(i,j)] = node;
 			} else {
                 boundary_bool.push_back(false);
+				//boundary_bool.insert(boundary_bool.begin(), false);
+				//nodes.insert(nodes.begin(), Triplet(neighbour, i, j));
+				nodes.push_back(Node(neighbour, i, j));
+				position_coordinates[std::make_pair(i,j)] = node;
+				index_bool++;
 			}
             
-			
-			nodes.push_back(Triplet(neighbour, i, j));
-			position_coordinates[std::make_pair(i,j)] = node;
+			node_neighbours = neighbour;
 
 
             if(i < N - 1){
@@ -88,6 +95,8 @@ Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, 
                 neighbour++;
             }
 
+			nodes.at(node).node_neighbours = neighbour - node_neighbours;
+
             node++;
 
 		}
@@ -103,7 +112,7 @@ int Graph::numel() {
 }
 
 
-const std::vector<Triplet>& Graph::get_nodes(){
+const std::vector<Node>& Graph::get_nodes(){
 	return nodes;
 }
 
@@ -178,6 +187,7 @@ std::pair<int, int> Graph::inverse_index(Index i) {
 }
 
 
+
 Graph Graph::build_coarse() {
 	if (minimal) {
 		fprintf(stderr, "Mesh can't create coarse\n");
@@ -195,11 +205,7 @@ Graph Graph::build_coarse() {
 }
 
 int Graph::num_neighbours(Index i){
-	if(i < nodes.size()-1){
-    	return nodes.at(i + 1).index_node - nodes.at(i).index_node;
-	}else{
-		return neighbours.size() - nodes.at(i).index_node - 1;
-	}
+	return nodes.at(i).node_neighbours;
 }
 
 

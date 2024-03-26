@@ -27,7 +27,7 @@ int main (int argc, char *argv[]) {
 	const int N = 129;
 	
 	
-	Graph fine(0.0, 0.0, 1.0, 1.0, N);
+	Graph fine = Graph();
 	Multigrid2 two(fine, PRE_SMOOTHING_STEPS, POST_SMOOTHING_STEPS, 2);
 	Multigrid2 three(fine, PRE_SMOOTHING_STEPS, POST_SMOOTHING_STEPS, 3);
 	Multigrid2 four(fine, PRE_SMOOTHING_STEPS, POST_SMOOTHING_STEPS, 4);

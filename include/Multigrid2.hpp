@@ -35,12 +35,10 @@ public:
 				meshes.push_back(meshes[lvl-1].build_coarse());
 			}
 		}
-
 		// i vettori di errore, residuo
 		for (int lvl = 0; lvl < levels; ++lvl) {
 			err.push_back(std::vector<double>(meshes[lvl].numel()));
 			res.push_back(std::vector<double>(meshes[lvl].numel()));
-
 			if (lvl == 0) {
 				u_internal.push_back(std::vector<double>());
 				b_internal.push_back(std::vector<double>());
@@ -60,7 +58,6 @@ public:
 
 	void step(std::vector<double> &u, const std::vector<double> &b, int lvl = 0) {
 		Graph &fine = meshes[lvl];
-
 		if (lvl == (levels-1)) {
 			// solve well the problem at the coarsest grid, for now we do a fixed amount of iterations
 			for (int it = 0; it < 300; ++it) {
@@ -88,7 +85,7 @@ public:
 
 			// correction
 			for (int i = 0; i < fine.get_nodes().size(); i++) {
-				if(fine.get_bool_boundary().at(i) == false){
+				if(fine.get_nodes().at(i).type == 'i'){
 					
 					u[i] -= err[lvl][i];
 				
@@ -123,5 +120,4 @@ private:
 	std::vector<std::vector<double>> res;
 	std::vector<Graph> meshes;
 };
-
 #endif

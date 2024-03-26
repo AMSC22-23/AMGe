@@ -6,8 +6,13 @@
 #include <vector>
 #include <tuple>
 #include <map>
+#include <fstream>
+#include <math.h>
 #include "Utils.hpp"
 #include "Node.hpp"
+#include "NeighbourNode.hpp"
+extern  std::ifstream* myfile;
+
 
 
 using Index = int;
@@ -16,6 +21,7 @@ using Index = int;
 class Graph {
 public:
 	Graph(double x_corner_, double y_corner_, double width_, double height_, unsigned int N_);
+	Graph();
 
 	/* 
 	 *	number of total nodes (boundary and internal of the mesh) used for allocating the solution vector like:
@@ -23,34 +29,18 @@ public:
 	*/
 	int numel();
 
-	
-
 
 	// return a vector where each element rapresent a node and points to its first neighbour in vector neighbours
 	const std::vector<Node>& get_nodes();
 
 
 	// return a vector of nodes identified by their index
-	const std::vector<std::pair<Index, double>>& get_neighbours();
-
-
-	//return index of nodes in the boundary
-	const std::vector<Index>& get_boundary();
-
-
-	// return a vector of the same size of nodes, it specifies if the element is in the boundary or not
-	const std::vector<bool>& get_bool_boundary();
-
-
-	// return a vector of the same size of neighbours, it specifies if the neighbour is cardinal or  not
-	const std::vector<bool>& get_bool_cardinal_neighbour();
+	const std::vector<NeighbourNode>& get_neighbours();
 
 
 	// return a vector correspondence between an index of the node and its coordinates in the system (coordinates are the key)
 	const std::map<std::pair<int,int>, Index>& get_position_coordinates();
 
-
-	int get_index_bool();
 
 	// The solution vector is a 1D vector, this map and its inverse helps converting 2D indeces (natural for a 2D mesh) into 1D equivalents
 	Index index(int i, int j);
@@ -87,6 +77,8 @@ public:
 	void test_inner_nodes();
 	void test_index();
 	void test_inverse_index();
+	void test_structure_nodes();
+	~Graph(){};
 
 
 private:
@@ -99,16 +91,9 @@ private:
 
 	int N;
     std::vector<Node> nodes;
-	std::vector<std::pair<Index, double>> neighbours;
-    std::vector<bool> boundary_bool;
-	std::vector<bool> cardinal_neighbour_bool;
+	std::vector<NeighbourNode> neighbours;
 	std::map<std::pair<int, int>, Index> position_coordinates;
-	std::vector<Index> boundary;
-	int index_bool;
-
-
 	bool minimal;
 };
-
 
 #endif

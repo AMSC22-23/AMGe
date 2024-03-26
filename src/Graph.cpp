@@ -1,5 +1,7 @@
 #include "Graph.hpp"
 #include "Utils.hpp"
+#include <fstream>
+
 
 
 Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, unsigned int N_) {
@@ -19,83 +21,66 @@ Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, 
 
 	N = N_;
 	h = width / (N-1);
-
     int node = 0;
     int neighbour = 0;
-	index_bool=0;
 	int node_neighbours;
-
 
 	for (int i = 0; i < N; ++i) {
 		for (int j = 0; j < N; ++j) {
 			if (i == 0 || i == N-1 || j == 0 || j == N-1) {
-                boundary_bool.push_back(true);
-				boundary.push_back(node);
-				nodes.push_back(Node(neighbour, i, j));
+				nodes.push_back(Node(neighbour, i, j, 'b'));
 				position_coordinates[std::make_pair(i,j)] = node;
 			} else {
-                boundary_bool.push_back(false);
-				//boundary_bool.insert(boundary_bool.begin(), false);
-				//nodes.insert(nodes.begin(), Triplet(neighbour, i, j));
-				nodes.push_back(Node(neighbour, i, j));
+				nodes.push_back(Node(neighbour, i, j, 'i'));
 				position_coordinates[std::make_pair(i,j)] = node;
-				index_bool++;
 			}
             
 			node_neighbours = neighbour;
 
 
             if(i < N - 1){
-				neighbours.push_back(std::make_pair(node + N, 0.125));
-				cardinal_neighbour_bool.push_back(true);
+				neighbours.push_back(NeighbourNode(node + N, 0.125, true));
                 neighbour++;
             }
 
 
             if(i > 0){
-				neighbours.push_back(std::make_pair(node - N, 0.125));
-				cardinal_neighbour_bool.push_back(true);
+				neighbours.push_back(NeighbourNode(node - N, 0.125, true));
                 neighbour++;
             }
 
 
             if(j > 0){
-				neighbours.push_back(std::make_pair(node - 1, 0.125));
-				cardinal_neighbour_bool.push_back(true);
+				neighbours.push_back(NeighbourNode(node - 1, 0.125, true));
                 neighbour++;
             }
 
-            if(i < N - 1){
-				neighbours.push_back(std::make_pair(node + 1, 0.125));
-				cardinal_neighbour_bool.push_back(true);
+            if(j < N - 1){
+				neighbours.push_back(NeighbourNode(node + 1, 0.125, true));
                 neighbour++;
             }
 
             if(i < N - 1 && j < N - 1){
-				neighbours.push_back(std::make_pair(node + N + 1, 0.0625));
-				cardinal_neighbour_bool.push_back(false);
+				neighbours.push_back(NeighbourNode(node + N + 1, 0.0625, false));
                 neighbour++;
             }
 
             if(i < N - 1 && j > 0){
-				neighbours.push_back(std::make_pair(node + N - 1, 0.0625));
-				cardinal_neighbour_bool.push_back(false);
+				neighbours.push_back(NeighbourNode(node + N - 1, 0.0625, false));
                 neighbour++;
             }
 
             if(i > 0 && j > 0){
-				neighbours.push_back(std::make_pair(node - N - 1, 0.0625));
-				cardinal_neighbour_bool.push_back(false);
+				neighbours.push_back(NeighbourNode(node - N - 1, 0.0625, false));
                 neighbour++;
             }
 
             if(i > 0 && j < N - 1){
-				neighbours.push_back(std::make_pair(node - N + 1, 0.0625));
-				cardinal_neighbour_bool.push_back(false);
+				neighbours.push_back(NeighbourNode(node - N + 1, 0.0625, false));
                 neighbour++;
             }
 
-			nodes.at(node).node_neighbours = neighbour - node_neighbours;
+			nodes.at(node).num_neighbours = neighbour - node_neighbours;
 
             node++;
 
@@ -103,6 +88,64 @@ Graph::Graph(double x_corner_, double y_corner_, double width_, double height_, 
 	}
 
 
+	minimal = !is_2nplusone(N);
+}
+
+
+
+Graph::Graph() {
+	std::ifstream* myfile = new std::ifstream("graphs/graph.txt");
+	//myfile.open("../graphs/graph.txt");
+	int index;
+	int i;
+	int j;
+	int number_closes;
+	int neigh;
+	char type;
+	if((*myfile).is_open()){
+		*myfile >> N;
+		*myfile >> x_corner;
+		*myfile >> y_corner;
+		*myfile >> width;
+		*myfile >> height;
+		if (width != height) {
+		//@note: I know that `std::cout` is clunky but is more aligned with C++
+		//       Do not worry, C++23 has std::format!
+			fprintf(stderr, "Mesh has to be square\n");
+			exit(EXIT_FAILURE);
+		}
+		*myfile >> h;
+		*myfile >> h;
+		h = width / (sqrt(N)-1);
+
+		int node = 0;
+    	int neighbour = 0;
+
+		for(int z = 0; z < N; z++){
+			*myfile >> index;
+			*myfile >> type;
+			*myfile >> i;
+			*myfile >> j;
+			*myfile >> number_closes;
+
+			nodes.push_back(Node(neighbour, i, j, type));
+			position_coordinates[std::make_pair(i,j)] = node;
+			nodes.at(node).num_neighbours = number_closes;
+			
+			for(int n = 0; n < number_closes; n++){
+				*myfile >> neigh;
+				*myfile >> type;
+				if(type == 'T'){
+					neighbours.push_back(NeighbourNode(neigh, 0.125, true));
+				}else if(type == 'F'){
+					neighbours.push_back(NeighbourNode(neigh, 0.0625, false));
+				}
+                neighbour++;
+			}
+			node ++;
+       }
+    }
+	N = sqrt(N);
 	minimal = !is_2nplusone(N);
 }
 
@@ -117,22 +160,8 @@ const std::vector<Node>& Graph::get_nodes(){
 }
 
 
-const std::vector<std::pair<Index, double>>& Graph::get_neighbours(){
+const std::vector<NeighbourNode>& Graph::get_neighbours(){
 	return neighbours;
-}
-
-const std::vector<Index>& Graph::get_boundary(){
-	return boundary;
-}
-
-
-const std::vector<bool>& Graph::get_bool_boundary(){
-	return boundary_bool;
-}
-
-
-const std::vector<bool>& Graph::get_bool_cardinal_neighbour(){
-	return cardinal_neighbour_bool;
 }
 
 
@@ -147,9 +176,9 @@ std::vector<int> Graph::get_cardinal_neighbours(Index i) {
 	std::vector<int> cardinal_neighbours;
 	
 	for(int j = 0; j < num_neighbours(i); j++){
-		if(get_bool_cardinal_neighbour().at(nodes.at(i).index_node + j) == true){
+		if(neighbours.at(nodes.at(i).index_node + j).cardinal == true){
 			
-			cardinal_neighbours.push_back(neighbours.at(nodes.at(i).index_node + j).first);
+			cardinal_neighbours.push_back(neighbours.at(nodes.at(i).index_node + j).index);
 		}
 	}
 	
@@ -167,9 +196,9 @@ std::vector<int> Graph::get_diagonal_neighbours(Index i) {
 	std::vector<int> cardinal_neighbours;
 	
 	for(int j = 0; j < num_neighbours(i); j++){
-		if(get_bool_cardinal_neighbour().at(nodes.at(i).index_node + j) == false){
+		if(neighbours.at(nodes.at(i).index_node + j).cardinal == false){
 			
-			cardinal_neighbours.push_back(neighbours.at(nodes.at(i).index_node + j).first);
+			cardinal_neighbours.push_back(neighbours.at(nodes.at(i).index_node + j).index);
 		}
 	}
 	
@@ -194,7 +223,6 @@ Graph Graph::build_coarse() {
 		exit(EXIT_FAILURE);
 	}
 
-
 	return Graph(
 		  x_corner
 		, y_corner
@@ -205,12 +233,12 @@ Graph Graph::build_coarse() {
 }
 
 int Graph::num_neighbours(Index i){
-	return nodes.at(i).node_neighbours;
+	return nodes.at(i).num_neighbours;
 }
 
 
 void Graph::project_on_coarse(Graph &coarse, const std::vector<double> &u, std::vector<double> &v) {
-	std::pair<Index, double> neighbour;
+	NeighbourNode neighbour;
 
 	for (auto &x : v) {
 		x = 0.0;
@@ -227,7 +255,7 @@ void Graph::project_on_coarse(Graph &coarse, const std::vector<double> &u, std::
             for(int z = 0; z < num_neighbours(index(i,j)); z++){
 				
 				neighbour = neighbours.at(nodes.at(index(i,j)+z).index_node);
-                v[coarse.index(ii, jj)] = u[neighbour.first] * neighbour.second;
+                v[coarse.index(ii, jj)] = u[neighbour.index] * neighbour.weight;
             }
 		}
 	}
@@ -292,11 +320,13 @@ void Graph::evaluate_forcing_term(std::vector<double> &b, double (*f)(double x, 
 
 
 void Graph::evaluate_boundary_conditions(std::vector<double> &u, double (*f)(double x, double y)) {
-	for (Index i : boundary){
-			const auto [j, k] = inverse_index(i);
-			const double x = x_corner + j * h * width;
-			const double y = y_corner + k * h * height;
-			u[i] = f(x,y);
+	for (Index i = 0; i < get_nodes().size(); i++){
+			if(get_nodes().at(i).type == 'b'){
+				const auto [j, k] = inverse_index(i);
+				const double x = x_corner + j * h * width;
+				const double y = y_corner + k * h * height;
+				u[i] = f(x,y);
+			}
 	}
 }
 
@@ -353,9 +383,20 @@ void Graph::test_constructor() {
 
 void Graph::test_inner_nodes() {
 	for (int i = 0; i < nodes.size(); i++) {
-		if(boundary_bool[i] == false){
+		if(nodes[i].type == 'i'){
 			std::cout << i << std::endl;
 		}
+	}
+}
+
+
+void Graph::test_structure_nodes(){
+	for (int i = 0; i < nodes.size(); i++) {
+		std::cout<< nodes[i].index_node << " " << nodes[i].num_neighbours << " " << nodes[i].type << " " << nodes[i].x << " " << nodes[i].y << std::endl;
+		for(int j = 0 ; j < nodes[i].num_neighbours; j++){
+			std::cout<< neighbours[nodes[i].index_node + j].cardinal<< " " << neighbours[nodes[i].index_node + j].index << " " << neighbours[nodes[i].index_node + j].weight << "    " << std::ends;
+		}
+		std::cout<<""<<std::endl;
 	}
 }
 

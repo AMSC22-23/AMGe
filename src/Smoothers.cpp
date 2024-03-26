@@ -13,10 +13,10 @@ void residual(Lattice &mesh, const std::vector<double> &u, const std::vector<dou
 
 void residual(Graph &graph, const std::vector<double> &u, const std::vector<double> &b, std::vector<double> &r) {  
 	// @TODO: add also parallelization here
-	std::pair<Index, double> neighbour;
+	NeighbourNode neighbour;
 	for (int i = 0; i < graph.get_nodes().size(); i++) {
 
-		if(graph.get_bool_boundary().at(i) == false){
+		if(graph.get_nodes().at(i).type == 'i'){
 
 			r[i] = 4.0 * u[i] - b[i];
 			
@@ -24,9 +24,9 @@ void residual(Graph &graph, const std::vector<double> &u, const std::vector<doub
 
 					neighbour = graph.get_neighbours().at(graph.get_nodes().at(i).index_node + j);
 
-					if(graph.get_bool_cardinal_neighbour().at(graph.get_nodes().at(i).index_node + j)){
+					if(neighbour.cardinal==true){
 						
-						r[i] = r[i] - u[neighbour.first];
+						r[i] = r[i] - u[neighbour.index];
 					
 					}
 			}
@@ -44,11 +44,11 @@ void gseidel(Lattice &mesh, std::vector<double> &u, const std::vector<double> &b
 	}
 }
 
-
 void gseidel(Graph &graph, std::vector<double> &u, const std::vector<double> &b) {
 	for (int i = 0; i < graph.get_nodes().size(); i++) {
 
-		if(graph.get_bool_boundary().at(i) == false){
+		if(graph.get_nodes().at(i).type == 'i'){
+
 
 			u[i] = 0.25 * b[i];
 
